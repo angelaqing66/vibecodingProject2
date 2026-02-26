@@ -34,10 +34,17 @@ This document outlines the strict guidelines, coding standards, and workflows th
     *   Keep the feature set tightly focused on the MVP (Search, Filtering, Scheduling).
     *   Resist "feature creep" (e.g., adding video calls or AI auto-matching) as defined by the Mom Test validation constraints.
     *   Optimize for finding partners with the *exact* same experience level and interview type.
-*   **Key UI Components:**
-    *   **Profile Form:** Must collect specific `experienceLevel` and `interviewTypes` mapped exactly to the Prisma schema.
-    *   **Partner Search:** Must contain dropdown filters for instant query narrowing.
-    *   **Booking Modal:** Must show available times and handle the transaction to create a `Session` record.
+*   **Key UI Components & Mockups:**
+    *   The frontend must strictly adhere to the Figma exports placed in `Project Memory/`:
+        *   `mockup_welcome.png`
+        *   `mockup_signup.png`
+        *   `mockup_profile.png`
+        *   `mockup_dashboard.png`
+        *   `mockup_search.png`
+        *   `mockup_admin.png`
+    *   **Profile Form:** Must collect specific `experienceLevel` and `interviewTypes` mapped exactly to the Prisma schema, matching the `mockup_profile.png` layout.
+    *   **Partner Search:** Must contain dropdown filters for instant query narrowing as seen in `mockup_search.png`.
+    *   **Booking Modal:** Must show available times and handle the transaction to create a `Session` record, mirroring the specific dashboard and scheduling flows in the provided mockups.
 *   **User Flows:**
     1.  Registers via NextAuth.
     2.  Fills out Profile (must be completed before searching).
@@ -68,3 +75,8 @@ This document outlines the strict guidelines, coding standards, and workflows th
     *   Don't add "Feature Creep" (No Video chats, No AI feedback tools). The MVP is search and scheduling only using zoom links.
     *   Don't use `any` types in TypeScript.
     *   Don't leave unused imports, `console.log()` statements, or commented-out blocks in production code.
+** Do not feel like you have to please me, I prefer that you say no or contradict me if I’m wrong. 
+
+** Feel free to tell me that you don’t know something or that you are not confident instead of making stuff up. 
+
+** Always base your answers on evidence, unless I tell you otherwise.

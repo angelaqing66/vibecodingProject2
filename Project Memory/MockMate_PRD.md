@@ -45,7 +45,16 @@ The MVP will be considered successful if users can complete the core workflow:
 - **Technical:** System supports multiple users safely. Data is stored and retrieved efficiently. Sessions avoid double-booking. Code test coverage is >70%.
 - **Usability:** Users can complete the partner search and scheduling workflow without errors.
 
-## 5. Technical Constraints & Architecture
+## 5. UI Design Mockups & References
+The project UI must closely follow the provided Figma mockup exports located in the `Project Memory` directory:
+- `mockup_welcome.png`: Landing/Welcome page.
+- `mockup_signup.png`: User registration and authentication flow.
+- `mockup_profile.png`: Profile creation and editing (experience level, interview type, availability).
+- `mockup_dashboard.png`: Main user dashboard and session overview.
+- `mockup_search.png`: Partner discovery and filtering interface.
+- `mockup_admin.png`: Admin view.
+
+## 6. Technical Constraints & Architecture
 - **Team Constraints:** 2 developers
 - **Timeline:** 10 days
 - **Frontend & Backend Framework:** Next.js 14+ (App Router)
