@@ -1,4 +1,9 @@
+---
+trigger: always_on
+---
+
 # MockMate - Antigravity Agent Rules
+Please include start with 🌟 when you answer my prompts.
 
 This document outlines the strict guidelines, coding standards, and workflows that must be followed when developing the MockMate application.
  *   Feel free to tell me that you don’t know something or that you are not confident instead of making stuff up. 
@@ -99,6 +104,6 @@ This document outlines the strict guidelines, coding standards, and workflows th
     *   Don't push directly to main — always use feature branches and PRs.
     *   Don't merge without 80%+ test coverage — the CI pipeline will fail anyway.
     *   Don't expose the Socket.io server port publicly — route through Next.js custom server only.
-   
+   Please end with 🌟 when you answer my prompts.
 
 
