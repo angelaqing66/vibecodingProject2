@@ -1,6 +1,5 @@
 'use server';
 
-import { z } from 'zod';
 import prisma from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { signupSchema, type SignupInput } from '@/lib/validations';

@@ -10,7 +10,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   pages: {
-    signIn: '/signup', // Direct to signup temporarily for MVP
+    signIn: '/login',
   },
   providers: [
     CredentialsProvider({
