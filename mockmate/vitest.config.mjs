@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
     environment: 'node', // server actions run in node
+    exclude: ['playwright-tests/**', 'node_modules/**'],
   },
 });
