@@ -77,6 +77,7 @@ model MockSession {
   guestId       String
   scheduledTime DateTime
   status        String   @default("PENDING") // PENDING, SCHEDULED, COMPLETED, CANCELLED
+  notes         String?
 
   host          User     @relation("HostedSessions", fields: [hostId], references: [id], onDelete: Cascade)
   guest         User     @relation("GuestSessions", fields: [guestId], references: [id], onDelete: Cascade)

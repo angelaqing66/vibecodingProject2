@@ -4,6 +4,10 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 
+// Mock global fetch (used by handleBooking -> POST /api/sessions)
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
+
 // Mock the backend action
 vi.mock('@/app/actions/search', () => ({
   searchPartners: vi.fn(),
@@ -36,6 +40,13 @@ describe('PartnerProfilePage and Booking UI', () => {
   beforeEach(() => {
     vi.mocked(getPartnerById).mockResolvedValue({ success: true, partner: mockPartner });
     mockPush.mockClear();
+    // Default: sessions POST succeeds
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({
+        success: true,
+        data: { meetingLink: 'https://zoom.us/j/111', id: 'sess1', scheduledTime: new Date().toISOString(), status: 'PENDING' },
+      }),
+    });
   });
 
   afterEach(() => {

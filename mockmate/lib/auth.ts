@@ -67,6 +67,21 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as { role?: string }).role;
       }
+
+      // Always re-fetch role from DB to ensure it's up to date
+      // (handles tokens minted before the role field was added)
+      if (token.id && !token.role) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true },
+          });
+          if (dbUser) token.role = dbUser.role;
+        } catch {
+          // non-fatal: role will remain undefined
+        }
+      }
+
       return token;
     },
   },

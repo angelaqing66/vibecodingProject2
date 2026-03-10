@@ -17,6 +17,9 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null); // ISO string
     const [notes, setNotes] = useState('');
     const [isBooked, setIsBooked] = useState(false);
+    const [isBooking, setIsBooking] = useState(false);
+    const [bookingError, setBookingError] = useState<string | null>(null);
+    const [confirmedMeetingLink, setConfirmedMeetingLink] = useState<string | null>(null);
 
     useEffect(() => {
         async function load() {
@@ -57,9 +60,45 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
         }
     };
 
-    const handleBooking = () => {
-        if (!selectedType || !selectedSlot) return;
-        setIsBooked(true);
+    const handleBooking = async () => {
+        if (!selectedType || !selectedSlot || !partner) return;
+        setIsBooking(true);
+        setBookingError(null);
+
+        try {
+            const res = await fetch('/api/sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hostId: partner.id,
+                    scheduledTime: selectedSlot,
+                    notes: notes.trim() || undefined,
+                }),
+            });
+
+            const data = await res.json() as {
+                success: boolean;
+                error?: string;
+                data?: { meetingLink?: string | null };
+            };
+
+            if (!data.success) {
+                setBookingError(data.error || 'Failed to book session. Please try again.');
+                setIsBooking(false);
+                return;
+            }
+
+            // Success — store meeting link from API and remove booked slot from availability
+            setConfirmedMeetingLink(data.data?.meetingLink ?? partner.zoomLink ?? null);
+            setPartner((prev) =>
+                prev ? { ...prev, availability: prev.availability.filter((a) => a !== selectedSlot) } : prev
+            );
+            setIsBooked(true);
+        } catch {
+            setBookingError('Network error. Please check your connection and try again.');
+        } finally {
+            setIsBooking(false);
+        }
     };
 
     if (isLoading) {
@@ -183,12 +222,12 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
                                             <span className="font-medium">Time:</span> {formatSlot(selectedSlot)}
                                         </p>
                                     )}
-                                    {partner.zoomLink && (
+                                    {confirmedMeetingLink && (
                                         <div className="pt-2 mt-2 border-t border-green-200">
                                             <span className="text-sm font-semibold text-green-900 block mb-1">Meeting Link:</span>
-                                            <a href={partner.zoomLink} target="_blank" rel="noreferrer"
+                                            <a href={confirmedMeetingLink} target="_blank" rel="noreferrer"
                                                 className="text-[#7C3AED] hover:underline text-sm font-medium break-all">
-                                                {partner.zoomLink}
+                                                {confirmedMeetingLink}
                                             </a>
                                         </div>
                                     )}
@@ -219,8 +258,8 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
                                                     onClick={() => setSelectedType(type)}
                                                     data-testid={`type-select-${type}`}
                                                     className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-left border-2 ${selectedType === type
-                                                            ? 'bg-purple-50 border-[#7C3AED] text-[#7C3AED]'
-                                                            : 'bg-white border-gray-200 text-gray-600 hover:border-[#7C3AED] hover:bg-purple-50'
+                                                        ? 'bg-purple-50 border-[#7C3AED] text-[#7C3AED]'
+                                                        : 'bg-white border-gray-200 text-gray-600 hover:border-[#7C3AED] hover:bg-purple-50'
                                                         }`}
                                                 >
                                                     {type}
@@ -242,8 +281,8 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
                                                         onClick={() => setSelectedSlot(iso)}
                                                         data-testid={`slot-select-${iso}`}
                                                         className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-left border-2 ${selectedSlot === iso
-                                                                ? 'bg-purple-50 border-[#7C3AED] text-[#7C3AED]'
-                                                                : 'bg-white border-gray-200 text-gray-700 hover:border-[#7C3AED] hover:bg-purple-50'
+                                                            ? 'bg-purple-50 border-[#7C3AED] text-[#7C3AED]'
+                                                            : 'bg-white border-gray-200 text-gray-700 hover:border-[#7C3AED] hover:bg-purple-50'
                                                             }`}
                                                     >
                                                         {formatSlot(iso)}
@@ -270,16 +309,31 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
                                         />
                                     </div>
 
+                                    {/* Booking Error */}
+                                    {bookingError && (
+                                        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 font-medium" data-testid="booking-error">
+                                            ⚠️ {bookingError}
+                                        </div>
+                                    )}
+
                                     <button
                                         onClick={handleBooking}
-                                        disabled={!selectedType || !selectedSlot}
+                                        disabled={!selectedType || !selectedSlot || isBooking}
                                         data-testid="confirm-booking"
-                                        className={`w-full px-6 py-3.5 rounded-xl font-bold text-white transition-all duration-200 ${!selectedType || !selectedSlot
+                                        className={`w-full px-6 py-3.5 rounded-xl font-bold text-white transition-all duration-200 flex items-center justify-center gap-2 ${!selectedType || !selectedSlot || isBooking
                                                 ? 'bg-gray-300 cursor-not-allowed'
                                                 : 'bg-[#7C3AED] hover:bg-[#6D28D9] shadow-md hover:shadow-lg'
                                             }`}
                                     >
-                                        Confirm Booking
+                                        {isBooking ? (
+                                            <>
+                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                                </svg>
+                                                Booking...
+                                            </>
+                                        ) : 'Confirm Booking'}
                                     </button>
                                 </div>
                             </>
