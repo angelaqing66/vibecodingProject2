@@ -1,9 +1,13 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import SearchPage from '@/components/features/search/SearchPage';
+import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
+
+// Mock the backend action
+vi.mock('@/app/actions/search', () => ({
+  searchPartners: vi.fn(),
+}));
 
 // Mock useRouter
 vi.mock('next/navigation', () => ({
@@ -12,73 +16,90 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-describe('SearchPage', () => {
+import { searchPartners } from '@/app/actions/search';
+import SearchPage from '@/components/features/search/SearchPage';
+
+const mockResult = {
+  users: [
+    { id: '1', name: 'Alex Chen', image: null, experienceLevel: 'New Grad', interviewTypes: ['Coding', 'System Design'] },
+    { id: '2', name: 'Priya Sharma', image: null, experienceLevel: 'Intern', interviewTypes: ['Behavioral', 'Coding'] },
+    { id: '3', name: 'James Park', image: null, experienceLevel: 'Experienced', interviewTypes: ['System Design'] },
+  ],
+  totalCount: 3,
+  totalPages: 1,
+  currentPage: 1,
+};
+
+describe('SearchPage (backend-integrated)', () => {
+  beforeEach(() => {
+    vi.mocked(searchPartners).mockResolvedValue(mockResult);
+  });
+
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
-  it('renders correctly with all mock partners initially', () => {
+  it('renders the loading skeleton initially then shows partners', async () => {
     render(<SearchPage />);
 
-    expect(screen.getByText('Find a Practice Partner')).toBeInTheDocument();
+    // Header should be there immediately
+    expect(screen.getByText('Find Partners')).toBeInTheDocument();
 
-    // We should see 6 results initially based on mockPartners array
-    expect(screen.getByText('6')).toBeInTheDocument();
-  });
+    // Wait for partners to load
+    await waitFor(() => {
+      expect(screen.getByText('Alex Chen')).toBeInTheDocument();
+    });
 
-  it('filters results instantly based on text input', () => {
-    render(<SearchPage />);
-
-    const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, { target: { value: 'Alex Chen' } });
-
-    // Only 1 result now
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('Alex Chen')).toBeInTheDocument();
-    // James Park should not be in the document
-    expect(screen.queryByText('James Park')).not.toBeInTheDocument();
-  });
-
-  it('filters results instantly based on checkboxes', () => {
-    render(<SearchPage />);
-
-    // Check INTERN box
-    const internCheckbox = screen.getByTestId('filter-level-INTERN');
-    fireEvent.click(internCheckbox);
-
-    // Kevin Wu and Priya Sharma
-    expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByText('Priya Sharma')).toBeInTheDocument();
-    expect(screen.getByText('Kevin Wu')).toBeInTheDocument();
-    expect(screen.queryByText('Alex Chen')).not.toBeInTheDocument();
+    expect(screen.getByText('James Park')).toBeInTheDocument();
   });
 
-  it('shows empty state when no results match', () => {
+  it('shows the correct total count after loading', async () => {
     render(<SearchPage />);
-
-    const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, {
-      target: { value: 'ThisStringWillNotMatchAnything' },
+    await waitFor(() => {
+      expect(screen.getByText('3 partners found')).toBeInTheDocument();
     });
-
-    expect(screen.getByText('No partners found')).toBeInTheDocument();
-    expect(screen.queryByTestId('partner-card')).not.toBeInTheDocument();
   });
 
-  it('clears all filters when clear button is clicked', () => {
+  it('renders partner cards with experience level badges', async () => {
     render(<SearchPage />);
+    await waitFor(() => {
+      expect(screen.getByText('New Grad')).toBeInTheDocument();
+      expect(screen.getByText('Intern')).toBeInTheDocument();
+      expect(screen.getByText('Experienced')).toBeInTheDocument();
+    });
+  });
 
-    const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, {
-      target: { value: 'ThisStringWillNotMatchAnything' },
+  it('renders View Profile buttons for each partner', async () => {
+    render(<SearchPage />);
+    await waitFor(() => {
+      const viewButtons = screen.getAllByText('View Profile');
+      expect(viewButtons).toHaveLength(3);
+    });
+  });
+
+  it('shows empty state when no partners found', async () => {
+    vi.mocked(searchPartners).mockResolvedValue({
+      users: [],
+      totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
     });
 
-    expect(screen.getByText('No partners found')).toBeInTheDocument();
+    render(<SearchPage />);
+    await waitFor(() => {
+      expect(screen.getByText('No partners found')).toBeInTheDocument();
+    });
+  });
 
-    const clearBtn = screen.getByTestId('clear-filters');
-    fireEvent.click(clearBtn);
-
-    // Should be back to 6
-    expect(screen.getByText('6')).toBeInTheDocument();
+  it('shows search input and filter controls', async () => {
+    render(<SearchPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Alex Chen')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('search-input')).toBeInTheDocument();
+    expect(screen.getByText('Experience Level')).toBeInTheDocument();
+    expect(screen.getByText('Interview Type')).toBeInTheDocument();
   });
 });
