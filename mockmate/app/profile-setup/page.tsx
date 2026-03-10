@@ -51,7 +51,11 @@ export default function ProfileSetupPage() {
     const onSubmit = async (data: FormValues) => {
         setServerError(null);
 
-        const result = await updateProfile(data);
+        const result = await updateProfile({
+            ...data,
+            availability: [],
+            zoomLink: '',
+        });
 
         if (!result.success) {
             setServerError(result.error || 'An error occurred');
