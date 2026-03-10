@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Calendar, User, Bell } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { Search, Calendar, User, Bell, ShieldAlert } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 export function Navbar() {
     const pathname = usePathname();
     const { data: session } = useSession();
+    const isAdmin = (session?.user as { role?: string })?.role === 'ADMIN';
 
     // Don't show navbar on login/signup pages
     if (pathname === '/login' || pathname === '/signup' || pathname === '/') {
@@ -31,8 +32,8 @@ export function Navbar() {
                         <Link
                             href="/search"
                             className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${pathname === '/search'
-                                    ? 'bg-purple-50 text-[#8A2BE2]'
-                                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                ? 'bg-purple-50 text-[#8A2BE2]'
+                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                 }`}
                         >
                             <Search className="w-4 h-4" />
@@ -42,8 +43,8 @@ export function Navbar() {
                         <Link
                             href="/dashboard"
                             className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${pathname === '/dashboard'
-                                    ? 'bg-purple-50 text-[#8A2BE2]'
-                                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                ? 'bg-purple-50 text-[#8A2BE2]'
+                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                 }`}
                         >
                             <Calendar className="w-4 h-4" />
@@ -53,13 +54,26 @@ export function Navbar() {
                         <Link
                             href="/profile"
                             className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${pathname === '/profile' || pathname === '/profile-setup'
-                                    ? 'bg-purple-50 text-[#8A2BE2]'
-                                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                ? 'bg-purple-50 text-[#8A2BE2]'
+                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                 }`}
                         >
                             <User className="w-4 h-4" />
                             <span>Profile</span>
                         </Link>
+
+                        {isAdmin && (
+                            <Link
+                                href="/admin"
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${pathname === '/admin'
+                                    ? 'bg-red-50 text-red-600'
+                                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <ShieldAlert className="w-4 h-4" />
+                                <span>Admin</span>
+                            </Link>
+                        )}
                     </div>
 
                     {/* Right side - User stuff */}
@@ -68,9 +82,13 @@ export function Navbar() {
                             <Bell className="w-5 h-5" />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
                         </button>
-                        <div className="w-9 h-9 rounded-full bg-[#8A2BE2] flex items-center justify-center text-white font-bold text-sm">
+                        <button
+                            onClick={() => signOut({ callbackUrl: '/login' })}
+                            className="w-9 h-9 rounded-full bg-[#8A2BE2] flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity"
+                            title="Sign out"
+                        >
                             {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
-                        </div>
+                        </button>
                     </div>
                 </div>
             </div>
