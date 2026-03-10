@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function ProfileRoute() {
   return (
-    <div className="py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <ProfilePage />
     </div>
   );
