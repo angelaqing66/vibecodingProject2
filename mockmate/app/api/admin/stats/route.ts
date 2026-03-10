@@ -29,7 +29,7 @@ export async function GET() {
 
     const sessionsThisWeek = await prisma.mockSession.count({
       where: {
-        createdAt: { gte: sevenDaysAgo },
+        scheduledTime: { gte: sevenDaysAgo },
       },
     });
 

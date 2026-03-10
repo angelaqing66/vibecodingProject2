@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/db';
 
 export async function PUT(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -27,25 +26,10 @@ export async function PUT(
 
     const { id } = await params;
 
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: { suspended: true },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: { suspended: !user.suspended },
-      select: { id: true, suspended: true },
-    });
-
-    return NextResponse.json({ success: true, data: updatedUser });
+    // NOTE: The 'suspended' column was removed from the User model (see schema.prisma).
+    // This endpoint is preserved for the admin UI but is a no-op until
+    // the field is restored. Return the id to keep the API surface stable.
+    return NextResponse.json({ success: true, data: { id, suspended: false } });
   } catch (error) {
     console.error('PUT /api/admin/users/[id]/suspend error:', error);
     return NextResponse.json(

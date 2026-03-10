@@ -1,82 +1,104 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
-import ProfilePage from '@/components/features/profile/ProfilePage';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 
-describe('ProfilePage', () => {
+// Mock the server actions used by the profile page
+vi.mock('@/app/actions/profile', () => ({
+  getProfile: vi.fn().mockResolvedValue({
+    success: true,
+    user: {
+      name: 'Vartika Singh',
+      email: 'vartika@university.edu',
+      bio: 'CS student preparing for SWE roles at top tech companies.',
+      experienceLevel: 'New Grad',
+      interviewTypes: ['Coding', 'System Design'],
+      availability: [],
+      zoomLink: 'https://zoom.us/j/123456789',
+    },
+  }),
+  updateProfile: vi.fn().mockResolvedValue({ success: true }),
+}));
+
+// Mock react-hook-form with zodResolver since profile/page.tsx uses it
+vi.mock('react-hook-form', async () => {
+  const actual = await vi.importActual<typeof import('react-hook-form')>('react-hook-form');
+  return {
+    ...actual,
+    useForm: () => ({
+      register: vi.fn(() => ({})),
+      handleSubmit: (fn: (data: unknown) => void) => (e: React.FormEvent) => {
+        e.preventDefault();
+        fn({
+          experienceLevel: 'New Grad',
+          interviewTypes: ['Coding'],
+          availability: [],
+          zoomLink: '',
+        });
+      },
+      watch: vi.fn((field?: string) => {
+        if (field === 'interviewTypes') return ['Coding'];
+        if (field === 'availability') return [];
+        if (field === 'experienceLevel') return 'New Grad';
+        return undefined;
+      }),
+      setValue: vi.fn(),
+      formState: { errors: {}, isSubmitting: false },
+    }),
+  };
+});
+
+vi.mock('@hookform/resolvers/zod', () => ({
+  zodResolver: () => vi.fn(),
+}));
+
+// Lazy import so mocks are set up first
+const ProfilePage = (await import('@/app/profile/page')).default;
+
+describe('ProfilePage (backend-integrated)', () => {
   afterEach(() => {
     cleanup();
   });
-  it('renders correctly in view mode', () => {
+
+  it('renders the loading state initially then shows the profile form', async () => {
     render(<ProfilePage />);
 
-    // Check for user details
-    expect(screen.getByText('Vartika Singh')).toBeInTheDocument();
-    expect(screen.getByText('vartika@university.edu')).toBeInTheDocument();
+    // While loading, component shows "Loading Profile..."
+    expect(screen.getByText('Loading Profile...')).toBeInTheDocument();
 
-    // Check for bio
-    expect(
-      screen.getByText(
-        'CS student preparing for SWE roles at top tech companies.'
-      )
-    ).toBeInTheDocument();
-
-    // Check for "Edit Profile" button
-    const editBtn = screen.getByTestId('edit-save-button');
-    expect(editBtn).toHaveTextContent('Edit Profile');
+    // After fetching, the form header should appear
+    await waitFor(() => {
+      expect(screen.getByText('My Profile')).toBeInTheDocument();
+    });
   });
 
-  it('toggles to edit mode and allows modifications', () => {
+  it('renders experience level options', async () => {
     render(<ProfilePage />);
-
-    const editBtn = screen.getByTestId('edit-save-button');
-
-    // Enter edit mode
-    fireEvent.click(editBtn);
-    expect(editBtn).toHaveTextContent('Save Profile');
-
-    // Modify bio
-    const bioInput = screen.getByTestId('bio-input');
-    fireEvent.change(bioInput, { target: { value: 'Updated bio testing.' } });
-    expect(bioInput).toHaveValue('Updated bio testing.');
-
-    // Add new company
-    const targetCompaniesInput = screen.getByTestId('company-input');
-    fireEvent.change(targetCompaniesInput, { target: { value: 'Amazon' } });
-    fireEvent.keyDown(targetCompaniesInput, { key: 'Enter', code: 'Enter' });
-
-    // Check if new company acts as a pill
-    expect(screen.getByText('Amazon')).toBeInTheDocument();
-
-    // Save profile
-    fireEvent.click(editBtn);
-
-    // We should be back in view mode
-    expect(editBtn).toHaveTextContent('Edit Profile');
-
-    // And bio is updated
-    expect(screen.getByText('Updated bio testing.')).toBeInTheDocument();
-    expect(screen.getByText('Amazon')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('My Profile')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Experience Level')).toBeInTheDocument();
+    expect(screen.getByText('Intern')).toBeInTheDocument();
+    expect(screen.getByText('New Grad')).toBeInTheDocument();
+    expect(screen.getByText('Experienced')).toBeInTheDocument();
   });
 
-  it('availability toggle grid cells react to clicks', () => {
+  it('renders interview type options', async () => {
     render(<ProfilePage />);
+    await waitFor(() => {
+      expect(screen.getByText('My Profile')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Behavioral')).toBeInTheDocument();
+    expect(screen.getByText('Coding')).toBeInTheDocument();
+    expect(screen.getByText('System Design')).toBeInTheDocument();
+  });
 
-    // Enter Edit Mode
-    const editBtn = screen.getByTestId('edit-save-button');
-    fireEvent.click(editBtn);
-
-    // Initial state matching mockUser (slot-1, day: 0, period: "MORNING") => already active
-    // Click on Mon (0) Morning
-    const monMorningBtn = screen.getByTestId('slot-0-MORNING');
-
-    expect(monMorningBtn).toHaveClass('bg-purple-500');
-
-    fireEvent.click(monMorningBtn);
-
-    // After click, should become inactive
-    expect(monMorningBtn).toHaveClass('bg-gray-50');
+  it('renders the save button', async () => {
+    render(<ProfilePage />);
+    await waitFor(() => {
+      expect(screen.getByText('My Profile')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /save profile/i })).toBeInTheDocument();
   });
 });

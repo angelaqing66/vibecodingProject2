@@ -27,18 +27,14 @@ export async function GET() {
         host: { select: { id: true, name: true, experienceLevel: true } },
         guest: { select: { id: true, name: true, experienceLevel: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { scheduledTime: 'desc' },
     });
 
     const formattedSessions = mockSessions.map(
       (s: {
         id: string;
-        interviewType: string;
         status: string;
-        meetingLink: string | null;
-        notes: string | null;
         scheduledTime: Date;
-        createdAt: Date;
         host: {
           id: string;
           name: string | null;
@@ -51,27 +47,18 @@ export async function GET() {
         };
       }) => ({
         id: s.id,
-        interviewType: s.interviewType,
         status: s.status,
-        meetingLink: s.meetingLink,
-        notes: s.notes,
-        timeSlot: {
-          id: 'legacy',
-          dayOfWeek: s.scheduledTime.getDay(),
-          period: 'MORNING',
-          isBooked: true,
-        }, // Defaulted timeslot values ensuring data consistency
+        scheduledTime: s.scheduledTime.toISOString(),
         requester: {
           id: s.host.id,
           name: s.host.name || 'Unknown',
-          level: s.host.experienceLevel || 'INTERN',
+          level: s.host.experienceLevel || 'Unknown',
         },
         partner: {
           id: s.guest.id,
           name: s.guest.name || 'Unknown',
-          level: s.guest.experienceLevel || 'INTERN',
+          level: s.guest.experienceLevel || 'Unknown',
         },
-        createdAt: s.createdAt.toISOString(),
       })
     );
 
