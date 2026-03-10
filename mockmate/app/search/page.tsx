@@ -1,59 +1,24 @@
-import { Suspense } from 'react';
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
-import { searchPartners } from '@/app/actions/search';
-import { PartnerCard } from '@/components/ui/PartnerCard';
-import { SearchFilters } from '@/components/ui/SearchFilters';
-import { Pagination } from '@/components/ui/Pagination';
+import SearchPage from '@/components/features/search/SearchPage';
 
-// This is a Server Component. Next.js App Router passes searchParams as a prop to page components.
-// We make them async so we can await the params or fetch data.
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export const metadata = {
+  title: 'Find Partners | MockMate',
+  description: 'Search and filter practice partners for mock interviews',
+};
+
+export default async function SearchRoute() {
   const session = await getServerSession(authOptions);
 
-  // Fallback protection if middleware misses
   if (!session) {
     redirect('/login');
   }
 
-  const awaitedParams = await searchParams;
-
-  // Parse URL parameters
-  const page =
-    typeof awaitedParams.page === 'string'
-      ? parseInt(awaitedParams.page, 10)
-      : 1;
-  const name = typeof awaitedParams.name === 'string' ? awaitedParams.name : '';
-  const experienceLevel =
-    typeof awaitedParams.experienceLevel === 'string'
-      ? awaitedParams.experienceLevel
-      : '';
-  const interviewType =
-    typeof awaitedParams.interviewType === 'string'
-      ? awaitedParams.interviewType
-      : '';
-
-  const limit = 5; // results per page
-
-  // Fetch data server-side
-  const result = await searchPartners({
-    page,
-    limit,
-    name,
-    experienceLevel,
-    interviewType,
-  });
-
   return (
     <div className="min-h-screen bg-[#F3F4FE]">
-      {/* Simple Navbar placeholder for Search Page */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🎯</span>
             <span className="text-xl font-extrabold text-[#0B1527] tracking-tight">
@@ -64,10 +29,12 @@ export default async function SearchPage({
             <span className="text-sm font-medium text-gray-600">
               Hi, {session.user?.name || 'User'}
             </span>
-            {/* A real app might have a dropdown or complete nav here */}
           </div>
         </div>
       </header>
+      </header>
+      <SearchPage />
+    </div >
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
