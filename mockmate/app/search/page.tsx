@@ -122,7 +122,6 @@ export default async function SearchPage({
                   />
                 </Suspense>
               </div>
-
             </>
           )}
         </div>
