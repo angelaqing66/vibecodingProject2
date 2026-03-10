@@ -58,6 +58,10 @@ model User {
   interviewTypes  String[] // ["Behavioral", "Coding", "System Design"]
   availability    String[] // JSON string array of timeslots or simple strings
   zoomLink        String?
+  createdAt       DateTime  @default(now())
+
+  role            String    @default("STUDENT")
+  suspended       Boolean   @default(false)
 
   // NextAuth
   accounts      Account[]
@@ -74,6 +78,10 @@ model MockSession {
   guestId       String
   scheduledTime DateTime
   status        String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  interviewType String   @default("CODING")
+  meetingLink   String?
+  notes         String?
+  createdAt     DateTime @default(now())
 
   host          User     @relation("HostedSessions", fields: [hostId], references: [id], onDelete: Cascade)
   guest         User     @relation("GuestSessions", fields: [guestId], references: [id], onDelete: Cascade)
