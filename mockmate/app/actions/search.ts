@@ -114,3 +114,48 @@ export async function searchPartners({
     };
   }
 }
+
+export type PartnerProfile = {
+  id: string;
+  name: string | null;
+  image: string | null;
+  experienceLevel: string | null;
+  interviewTypes: string[];
+  availability: string[];
+  zoomLink: string | null;
+};
+
+export async function getPartnerById(partnerId: string): Promise<{
+  success: boolean;
+  partner?: PartnerProfile;
+  error?: string;
+}> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    const partner = await prisma.user.findUnique({
+      where: { id: partnerId },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        experienceLevel: true,
+        interviewTypes: true,
+        availability: true,
+        zoomLink: true,
+      },
+    });
+
+    if (!partner) {
+      return { success: false, error: 'Partner not found' };
+    }
+
+    return { success: true, partner };
+  } catch (error) {
+    console.error('getPartnerById error:', error);
+    return { success: false, error: 'Failed to fetch partner profile' };
+  }
+}

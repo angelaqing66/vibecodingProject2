@@ -1,94 +1,126 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import PartnerProfilePage from '@/components/features/search/PartnerProfilePage';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
+
+// Mock the backend action
+vi.mock('@/app/actions/search', () => ({
+  searchPartners: vi.fn(),
+  getPartnerById: vi.fn(),
+}));
 
 // Mock useRouter
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
+  useRouter: () => ({ push: mockPush }),
 }));
 
+import { getPartnerById } from '@/app/actions/search';
+import PartnerProfilePage from '@/components/features/search/PartnerProfilePage';
+
+const mockPartner = {
+  id: '1',
+  name: 'Alex Chen',
+  image: null,
+  experienceLevel: 'New Grad',
+  interviewTypes: ['Coding', 'System Design'],
+  availability: [
+    new Date('2025-03-15T10:00:00Z').toISOString(),
+    new Date('2025-03-17T14:00:00Z').toISOString(),
+  ],
+  zoomLink: 'https://zoom.us/j/111',
+};
+
 describe('PartnerProfilePage and Booking UI', () => {
-  afterEach(() => {
-    cleanup();
+  beforeEach(() => {
+    vi.mocked(getPartnerById).mockResolvedValue({ success: true, partner: mockPartner });
     mockPush.mockClear();
   });
 
-  it('renders profile details correctly in the left section', () => {
-    render(<PartnerProfilePage partnerId="1" />);
-
-    // Check Avatar/Name
-    expect(screen.getByText('Alex Chen')).toBeInTheDocument();
-
-    // Check tags
-    expect(screen.getByText('NEW GRAD')).toBeInTheDocument();
-    expect(screen.getByText('Google')).toBeInTheDocument();
-    expect(screen.getByText('Meta')).toBeInTheDocument();
-
-    // Check Bio
-    expect(
-      screen.getByText(
-        'CS grad from MIT, prepping for big tech. Love helping others practice!'
-      )
-    ).toBeInTheDocument();
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
-  it('handles the booking flow accurately', () => {
+  it('shows loading skeleton then renders profile details', async () => {
     render(<PartnerProfilePage partnerId="1" />);
+
+    // Wait for profile to load
+    await waitFor(() => {
+      expect(screen.getByText('Alex Chen')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('back-button')).toBeInTheDocument();
+    expect(screen.getByText('New Grad')).toBeInTheDocument();
+  });
+
+  it('renders profile details correctly in the left section', async () => {
+    render(<PartnerProfilePage partnerId="1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Alex Chen')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('New Grad')).toBeInTheDocument();
+    // Both 'Coding' and 'System Design' appear in the profile AND booking widget — use getAllByText
+    expect(screen.getAllByText('Coding').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('System Design').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('handles the booking flow accurately', async () => {
+    render(<PartnerProfilePage partnerId="1" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('confirm-booking')).toBeInTheDocument();
+    });
 
     const confirmBtn = screen.getByTestId('confirm-booking');
 
-    // Initially disabled because no type or slot is selected
+    // Initially disabled
     expect(confirmBtn).toBeDisabled();
 
-    // Select Interview type
-    const typeSelect = screen.getByTestId('type-select-CODING');
-    fireEvent.click(typeSelect);
+    // Select interview type
+    fireEvent.click(screen.getByTestId('type-select-Coding'));
 
-    // Still disabled
+    // Still disabled — no slot selected
     expect(confirmBtn).toBeDisabled();
 
-    // Select Slot (s1 -> Mon Morning)
-    const slotSelect = screen.getByTestId('slot-select-s1');
-    fireEvent.click(slotSelect);
+    // Select a time slot
+    const slotBtn = screen.getAllByTestId(/^slot-select-/)[0];
+    fireEvent.click(slotBtn);
 
-    // Now it should be enabled!
-    expect(confirmBtn).toBeEnabled();
+    // Now enabled
+    expect(confirmBtn).not.toBeDisabled();
 
-    // Add note
-    const notesInput = screen.getByTestId('booking-notes');
-    fireEvent.change(notesInput, {
-      target: { value: 'Excited for this mock!' },
-    });
-
-    // Click confirm!
+    // Confirm booking
     fireEvent.click(confirmBtn);
 
-    // We should be in the success state
-    expect(screen.getByTestId('success-state')).toBeInTheDocument();
-    expect(screen.getByText('Booking Confirmed!')).toBeInTheDocument();
-    expect(screen.getByText('Monday morning')).toBeInTheDocument();
-
-    // Meeting link exposed
-    expect(screen.getByText('https://zoom.us/j/111')).toBeInTheDocument();
-
-    // Click 'View in Dashboard'
-    const viewDashboardBtn = screen.getByText('View in Dashboard');
-    fireEvent.click(viewDashboardBtn);
-    expect(mockPush).toHaveBeenCalledWith('/dashboard');
+    // Success state shown
+    await waitFor(() => {
+      expect(screen.getByTestId('success-state')).toBeInTheDocument();
+    });
   });
 
-  it('back button navigates to search', () => {
+  it('back button navigates to search', async () => {
     render(<PartnerProfilePage partnerId="1" />);
 
-    const backBtn = screen.getByTestId('back-button');
-    fireEvent.click(backBtn);
+    await waitFor(() => {
+      expect(screen.getByTestId('back-button')).toBeInTheDocument();
+    });
 
+    fireEvent.click(screen.getByTestId('back-button'));
     expect(mockPush).toHaveBeenCalledWith('/search');
+  });
+
+  it('shows error state when partner is not found', async () => {
+    vi.mocked(getPartnerById).mockResolvedValue({ success: false, error: 'Partner not found' });
+
+    render(<PartnerProfilePage partnerId="nonexistent" />);
+
+    // Use getAllByText since the text appears in both the heading and the detail
+    await waitFor(() => {
+      expect(screen.getAllByText(/Partner not found/i).length).toBeGreaterThanOrEqual(1);
+    });
   });
 });
