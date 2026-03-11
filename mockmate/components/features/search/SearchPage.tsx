@@ -13,6 +13,18 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+
+  const [dateBounds, setDateBounds] = useState({ min: '', max: '' });
+
+  useEffect(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const nextMonthStr = nextMonth.toISOString().split('T')[0];
+    setDateBounds({ min: todayStr, max: nextMonthStr });
+  }, []);
 
   const [partners, setPartners] = useState<UserSearchResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -30,6 +42,7 @@ export default function SearchPage() {
       name: searchQuery,
       experienceLevel: selectedLevel,
       interviewType: selectedType,
+      date: selectedDate,
     });
 
     if (result.error) {
@@ -41,7 +54,7 @@ export default function SearchPage() {
       setCurrentPage(result.currentPage);
     }
     setIsLoading(false);
-  }, [searchQuery, selectedLevel, selectedType]);
+  }, [searchQuery, selectedLevel, selectedType, selectedDate]);
 
   useEffect(() => {
     // Debounce search query changes
@@ -56,9 +69,10 @@ export default function SearchPage() {
     setSearchQuery('');
     setSelectedType('');
     setSelectedLevel('');
+    setSelectedDate('');
   };
 
-  const hasFilters = searchQuery || selectedType || selectedLevel;
+  const hasFilters = searchQuery || selectedType || selectedLevel || selectedDate;
 
   const getInitials = (name: string | null) => {
     if (!name) return '?';
@@ -111,6 +125,20 @@ export default function SearchPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               data-testid="search-input"
+            />
+          </div>
+
+          {/* Date Filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Availability Date</label>
+            <input
+              type="date"
+              value={selectedDate}
+              min={dateBounds.min}
+              max={dateBounds.max}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              data-testid="date-input"
             />
           </div>
 

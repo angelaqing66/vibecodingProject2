@@ -58,12 +58,23 @@ export default function ProfilePage() {
         setValue('interviewTypes', updated, { shouldValidate: true });
     };
 
+    const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+        const hours = Math.floor(i / 2);
+        const minutes = i % 2 === 0 ? '00' : '30';
+        return `${hours.toString().padStart(2, '0')}:${minutes}`;
+    });
+
+    const [newAvailabilityDate, setNewAvailabilityDate] = useState('');
+
     const addAvailability = () => {
-        if (!newAvailabilityTime) return;
+        if (!newAvailabilityDate || !newAvailabilityTime) return;
         const current = availabilityList || [];
-        // Convert local datetime-local to ISO string
         try {
-            const dateObj = new Date(newAvailabilityTime);
+            const [year, month, day] = newAvailabilityDate.split('-');
+            const [hours, minutes] = newAvailabilityTime.split(':');
+
+            const dateObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes));
+
             if (!isNaN(dateObj.getTime())) {
                 const isoString = dateObj.toISOString();
                 if (!current.includes(isoString)) {
@@ -212,18 +223,29 @@ export default function ProfilePage() {
                             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
                                     <input
-                                        type="datetime-local"
+                                        type="date"
+                                        value={newAvailabilityDate}
+                                        min={new Date().toISOString().split('T')[0]} // Suggest future dates
+                                        onChange={(e) => setNewAvailabilityDate(e.target.value)}
+                                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8A2BE2] focus:border-transparent bg-white text-gray-700 font-medium"
+                                    />
+                                    <select
                                         value={newAvailabilityTime}
                                         onChange={(e) => setNewAvailabilityTime(e.target.value)}
                                         className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8A2BE2] focus:border-transparent bg-white text-gray-700 font-medium"
-                                    />
+                                    >
+                                        <option value="" disabled>Select Start Time</option>
+                                        {TIME_OPTIONS.map(time => (
+                                            <option key={time} value={time}>{time}</option>
+                                        ))}
+                                    </select>
                                     <button
                                         type="button"
                                         onClick={addAvailability}
-                                        disabled={!newAvailabilityTime}
-                                        className="bg-[#10B981] hover:bg-[#0EA5E9] text-white font-bold py-3 px-6 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={!newAvailabilityDate || !newAvailabilityTime}
+                                        className="bg-[#10B981] hover:bg-[#0EA5E9] text-white font-bold py-3 px-6 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                     >
-                                        Add Time
+                                        Add 1 Hr Slot
                                     </button>
                                 </div>
 
@@ -234,14 +256,20 @@ export default function ProfilePage() {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             {availabilityList.map((isoString, idx) => {
                                                 const dateObj = new Date(isoString);
-                                                const formatted = new Intl.DateTimeFormat('en-US', {
+                                                const endDateObj = new Date(dateObj.getTime() + 60 * 60 * 1000); // Add 1 hour
+
+                                                const formattedStart = new Intl.DateTimeFormat('en-US', {
                                                     weekday: 'short', month: 'short', day: 'numeric',
-                                                    hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+                                                    hour: 'numeric', minute: '2-digit'
                                                 }).format(dateObj);
+
+                                                const formattedEnd = new Intl.DateTimeFormat('en-US', {
+                                                    hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+                                                }).format(endDateObj);
 
                                                 return (
                                                     <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
-                                                        <span className="text-gray-800 font-medium text-sm">{formatted}</span>
+                                                        <span className="text-gray-800 font-medium text-sm">{formattedStart} - {formattedEnd}</span>
                                                         <button
                                                             type="button"
                                                             onClick={() => removeAvailability(isoString)}

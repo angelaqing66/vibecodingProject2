@@ -96,6 +96,32 @@ describe('searchPartners', () => {
     });
   });
 
+  it('searches users by date by generating 48 UTC time slots and using hasSome', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      user: { id: 'current-user-id', email: 'test@example.com' },
+      expires: '123',
+    });
+
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce([]);
+    vi.mocked(prisma.user.count).mockResolvedValueOnce(0);
+
+    const result = await searchPartners({
+      page: 1, limit: 10, date: '2024-05-12'
+    });
+
+    const expectedTimeSlots = Array.from({ length: 48 }, (_, i) => {
+      const slotDate = new Date(Date.UTC(2024, 4, 12)); // Month is 0-indexed (May = 4)
+      slotDate.setUTCMinutes(i * 30);
+      return slotDate.toISOString();
+    });
+
+    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        availability: { hasSome: expectedTimeSlots }
+      })
+    }));
+  });
+
   it('returns empty list gracefully on db errors', async () => {
     vi.mocked(getServerSession).mockResolvedValueOnce({
       user: { id: 'current-user-id', email: 'test@example.com' },

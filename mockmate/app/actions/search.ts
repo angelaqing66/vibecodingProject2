@@ -28,12 +28,14 @@ export async function searchPartners({
   name = '',
   experienceLevel = '',
   interviewType = '',
+  date = '',
 }: {
   page?: number;
   limit?: number;
   name?: string;
   experienceLevel?: string;
   interviewType?: string;
+  date?: string;
 }): Promise<SearchResult> {
   try {
     const session = await getServerSession(authOptions);
@@ -70,6 +72,23 @@ export async function searchPartners({
     if (interviewType) {
       whereClause.interviewTypes = {
         has: interviewType,
+      };
+    }
+
+    if (date) {
+      // Generate 48 half-hour ISO strings (in UTC) for the given YYYY-MM-DD
+      const [year, month, day] = date.split('-');
+      const targetDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+      const timeSlots: string[] = [];
+      for (let i = 0; i < 48; i++) {
+        const slotDate = new Date(targetDate);
+        slotDate.setUTCMinutes(i * 30);
+        timeSlots.push(slotDate.toISOString());
+      }
+
+      whereClause.availability = {
+        hasSome: timeSlots
       };
     }
 
