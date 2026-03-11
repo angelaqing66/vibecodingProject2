@@ -15,16 +15,13 @@ export default function SearchPage() {
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
 
-  const [dateBounds, setDateBounds] = useState({ min: '', max: '' });
-
-  useEffect(() => {
+  const [dateBounds] = useState(() => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
-    const nextMonthStr = nextMonth.toISOString().split('T')[0];
-    setDateBounds({ min: todayStr, max: nextMonthStr });
-  }, []);
+    return { min: todayStr, max: nextMonth.toISOString().split('T')[0] };
+  });
 
   const [partners, setPartners] = useState<UserSearchResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);

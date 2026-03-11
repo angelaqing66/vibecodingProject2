@@ -113,7 +113,7 @@ describe('searchPartners', () => {
     vi.mocked(prisma.user.count).mockResolvedValueOnce(0);
     vi.mocked(prisma.mockSession.findMany).mockResolvedValueOnce([]);
 
-    const result = await searchPartners({
+    await searchPartners({
       page: 1, limit: 10, date: '2024-05-12'
     });
 

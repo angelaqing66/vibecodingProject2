@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 
 // Mock the backend action

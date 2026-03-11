@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Calendar, User, Bell, ShieldAlert } from 'lucide-react';
+import { Search, Calendar, User, ShieldAlert } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import NotificationBell from './layout/NotificationBell';
 

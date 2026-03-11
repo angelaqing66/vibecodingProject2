@@ -15,10 +15,24 @@ function DashboardContent() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    type SessionWithUsers = import('@prisma/client').MockSession & {
-        host: Pick<import('@prisma/client').User, 'id' | 'name' | 'experienceLevel' | 'interviewTypes' | 'zoomLink'> | null;
-        guest: Pick<import('@prisma/client').User, 'id' | 'name' | 'experienceLevel' | 'interviewTypes' | 'zoomLink'> | null;
+    type SessionUser = {
+        id: string;
+        name: string | null;
+        experienceLevel: string | null;
+        interviewTypes: string[];
+        zoomLink: string | null;
+    };
+
+    type SessionWithUsers = {
+        id: string;
+        hostId: string;
+        guestId: string;
+        scheduledTime: Date;
+        status: string;
+        notes?: string | null;
         message?: string | null;
+        host: SessionUser | null;
+        guest: SessionUser | null;
     };
 
     const [dashboardData, setDashboardData] = useState<{
@@ -33,15 +47,10 @@ function DashboardContent() {
         past: []
     });
 
-    const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>(initialTab);
-
-    // If query param changes, update the active tab
-    useEffect(() => {
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>(() => {
         const tab = searchParams.get('tab') as 'upcoming' | 'pending' | 'past';
-        if (tab && ['upcoming', 'pending', 'past'].includes(tab)) {
-            setActiveTab(tab);
-        }
-    }, [searchParams]);
+        return tab && ['upcoming', 'pending', 'past'].includes(tab) ? tab : initialTab;
+    });
 
     const fetchDashboard = async (showLoadingObj = false) => {
         if (showLoadingObj) setIsLoading(true);
