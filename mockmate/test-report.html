@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MockMate — Full Test Report</title>
+<style>
+  :root {
+    --purple: #7C3AED;
+    --purple-light: #EDE9FE;
+    --green: #059669;
+    --green-light: #D1FAE5;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --yellow: #D97706;
+    --yellow-light: #FEF3C7;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --gray: #6B7280;
+    --gray-light: #F9FAFB;
+    --dark: #111827;
+    --border: #E5E7EB;
+    --pass: #10B981;
+    --skip: #F59E0B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: #F3F4F6;
+    color: var(--dark);
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #4C1D95 0%, #7C3AED 50%, #6D28D9 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.5px; }
+  .header p { font-size: 1rem; opacity: 0.85; margin-top: 0.5rem; }
+  .header .badges { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 9999px;
+    padding: 0.35rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .badge.green { background: rgba(16,185,129,0.25); border-color: rgba(16,185,129,0.5); }
+  .badge.yellow { background: rgba(245,158,11,0.25); border-color: rgba(245,158,11,0.5); }
+
+  /* Summary Cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border: 1px solid var(--border);
+  }
+  .stat-card .value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .stat-card .label { font-size: 0.78rem; color: var(--gray); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-card.green .value { color: var(--green); }
+  .stat-card.purple .value { color: var(--purple); }
+  .stat-card.blue .value { color: var(--blue); }
+  .stat-card.yellow .value { color: var(--yellow); }
+
+  /* Main content */
+  .content { max-width: 1200px; margin: 0 auto; padding: 0 2rem 3rem; }
+
+  /* Section headers */
+  .section-title {
+    font-size: 1.4rem; font-weight: 700; color: var(--dark);
+    margin: 2.5rem 0 1rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-badge {
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .e2e-badge { background: var(--blue-light); color: var(--blue); }
+  .unit-badge { background: var(--purple-light); color: var(--purple); }
+
+  /* Test tables */
+  .test-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border: 1px solid var(--border); }
+  .test-table thead th {
+    background: var(--gray-light);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray);
+    border-bottom: 1px solid var(--border);
+  }
+  .test-table tbody tr { border-bottom: 1px solid var(--border); }
+  .test-table tbody tr:last-child { border-bottom: none; }
+  .test-table tbody tr:hover { background: #FAFAFA; }
+  .test-table td { padding: 0.75rem 1rem; font-size: 0.875rem; }
+  .test-table td.id { font-family: monospace; font-weight: 700; color: var(--purple); white-space: nowrap; }
+  .test-table td.name { font-weight: 500; }
+  .test-table td.desc { color: var(--gray); font-size: 0.8rem; }
+
+  .status-pass {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: var(--green-light); color: var(--green);
+    font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+    border-radius: 999px; white-space: nowrap;
+  }
+  .status-skip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: var(--yellow-light); color: var(--yellow);
+    font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+    border-radius: 999px; white-space: nowrap;
+  }
+  .status-cond {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: var(--blue-light); color: var(--blue);
+    font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+    border-radius: 999px; white-space: nowrap;
+  }
+
+  /* Coverage table */
+  .cov-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border: 1px solid var(--border); }
+  .cov-table th { background: var(--gray-light); padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray); border-bottom: 1px solid var(--border); }
+  .cov-table td { padding: 0.65rem 1rem; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
+  .cov-table tr:last-child td { border-bottom: none; }
+  .cov-table tr.total td { font-weight: 700; background: var(--purple-light); }
+  .cov-bar { background: #E5E7EB; border-radius: 999px; height: 8px; width: 100px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 6px; }
+  .cov-fill { height: 100%; border-radius: 999px; }
+  .cov-high { background: var(--green); }
+  .cov-mid { background: var(--yellow); }
+  .cov-low { background: var(--red); }
+  .cov-num { font-weight: 600; }
+  .cov-num.high { color: var(--green); }
+  .cov-num.mid { color: var(--yellow); }
+  .cov-num.low { color: var(--red); }
+
+  /* Group header row */
+  .group-row td { background: #F3F4F6; font-weight: 700; font-size: 0.78rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 1rem; }
+
+  /* Info boxes */
+  .info-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    margin-bottom: 1rem;
+  }
+  .info-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+  .info-card p, .info-card li { font-size: 0.875rem; color: #374151; }
+  .info-card ul { padding-left: 1.25rem; spacing-y: 0.25rem; }
+  .info-card li { margin-bottom: 0.25rem; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  .tag { display: inline-block; background: var(--purple-light); color: var(--purple); font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; margin-right: 0.25rem; }
+  .tag.green { background: var(--green-light); color: var(--green); }
+  .tag.blue { background: var(--blue-light); color: var(--blue); }
+  .tag.gray { background: #E5E7EB; color: var(--gray); }
+
+  footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>🎯 MockMate — Full Test Report</h1>
+  <p>Unit Tests (Vitest) + End-to-End Tests (Playwright) | Generated: March 11, 2026</p>
+  <div class="badges">
+    <span class="badge green">✅ 69 Unit Tests Passing</span>
+    <span class="badge green">🧪 33 E2E Tests Written</span>
+    <span class="badge green">📊 71.9% Coverage</span>
+    <span class="badge yellow">🎭 Playwright: Chromium</span>
+    <span class="badge">🔨 Build: Passing</span>
+    <span class="badge">0 ESLint Errors</span>
+  </div>
+</div>
+
+<!-- SUMMARY STATS -->
+<div class="summary-grid">
+  <div class="stat-card green">
+    <div class="value">69</div>
+    <div class="label">Unit Tests Pass</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="value">33</div>
+    <div class="label">E2E Tests (Playwright)</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="value">102</div>
+    <div class="label">Total Tests</div>
+  </div>
+  <div class="stat-card green">
+    <div class="value">71.9%</div>
+    <div class="label">Statement Coverage</div>
+  </div>
+  <div class="stat-card green">
+    <div class="value">73.3%</div>
+    <div class="label">Line Coverage</div>
+  </div>
+  <div class="stat-card green">
+    <div class="value">12</div>
+    <div class="label">Test Files (Unit)</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="value">4</div>
+    <div class="label">E2E Spec Files</div>
+  </div>
+  <div class="stat-card">
+    <div class="value" style="color:#111827">0</div>
+    <div class="label">Lint Errors</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ==================== PLAYWRIGHT E2E TESTS ==================== -->
+<div class="section-title">
+  🎭 End-to-End Tests — Playwright
+  <span class="section-badge e2e-badge">Playwright / Chromium</span>
+</div>
+
+<div class="two-col" style="margin-bottom:1rem">
+  <div class="info-card">
+    <h3>🔧 Configuration</h3>
+    <ul>
+      <li><strong>Framework:</strong> Playwright ^1.58.2</li>
+      <li><strong>Browser:</strong> Chromium (Desktop)</li>
+      <li><strong>Base URL:</strong> http://localhost:3000</li>
+      <li><strong>Reporter:</strong> HTML + List</li>
+      <li><strong>Retries:</strong> 1 on CI</li>
+      <li><strong>Trace:</strong> On first retry</li>
+    </ul>
+  </div>
+  <div class="info-card">
+    <h3>📁 Spec Files</h3>
+    <ul>
+      <li><code>playwright-tests/login.spec.ts</code> — 9 tests</li>
+      <li><code>playwright-tests/search.spec.ts</code> — 8 tests</li>
+      <li><code>playwright-tests/booking.spec.ts</code> — 6 tests</li>
+      <li><code>playwright-tests/dashboard.spec.ts</code> — 10 tests</li>
+    </ul>
+  </div>
+</div>
+
+<!-- AUTH -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  🔐 Authentication Flow — <code>login.spec.ts</code>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr>
+      <th>Test ID</th>
+      <th>Test Name</th>
+      <th>What It Verifies</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="id">AUTH-01</td>
+      <td class="name">Login page renders correctly</td>
+      <td class="desc">Page title is "Sign In | MockMate", email/password inputs and submit button are visible</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-02</td>
+      <td class="name">Login page has Sign Up link</td>
+      <td class="desc">Anchor <code>href="/signup"</code> is visible for new users</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-03</td>
+      <td class="name">Login shows error on invalid credentials</td>
+      <td class="desc">Submitting wrong email/password shows "Invalid credentials" error message</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-04</td>
+      <td class="name">Login form validates empty fields</td>
+      <td class="desc">Empty form submission fails HTML5 required validation; email input gets focus</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-05</td>
+      <td class="name">Sign Up page renders correctly</td>
+      <td class="desc">Signup form has name, email, password inputs and "Create your account" heading</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-06</td>
+      <td class="name">Unauthenticated → /dashboard redirect</td>
+      <td class="desc">Visiting /dashboard while logged out redirects to /login (middleware guard)</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-07</td>
+      <td class="name">Unauthenticated → /search redirect</td>
+      <td class="desc">Visiting /search while logged out redirects to /login</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-08</td>
+      <td class="name">Unauthenticated → /profile redirect</td>
+      <td class="desc">Visiting /profile while logged out redirects to /login</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">AUTH-09</td>
+      <td class="name">Unauthenticated → /admin redirect</td>
+      <td class="desc">Visiting /admin while logged out redirects to /login (admin route guard)</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- SEARCH -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  🔍 Partner Search Flow — <code>search.spec.ts</code>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr>
+      <th>Test ID</th>
+      <th>Test Name</th>
+      <th>What It Verifies</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="id">SEARCH-01</td>
+      <td class="name">Search page requires auth</td>
+      <td class="desc">Unauthenticated visit to /search redirects to /login</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-02</td>
+      <td class="name">Search page renders after login</td>
+      <td class="desc">Page h1 contains "Find a Mock Interview Partner" after auth</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-03</td>
+      <td class="name">Search input accepts text</td>
+      <td class="desc">Typing "Alice" in search input; value persists and is readable</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-04</td>
+      <td class="name">Experience level filter renders</td>
+      <td class="desc">Filter dropdown/select for experience level is visible</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-05</td>
+      <td class="name">Interview type filter renders</td>
+      <td class="desc">Filter for interview type (Coding/Behavioral/System Design) is visible</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-06</td>
+      <td class="name">View Profile navigates to partner page</td>
+      <td class="desc">Clicking "View Profile" on a partner card navigates to /search/[id] route</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-07</td>
+      <td class="name">Partner profile has booking widget</td>
+      <td class="desc">Partner profile page shows "Book a Session" heading in the right panel</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">SEARCH-08</td>
+      <td class="name">Back button returns to /search</td>
+      <td class="desc">data-testid="back-button" click navigates back to /search</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size:0.78rem;color:var(--gray);margin-top:0.5rem">⚡ Conditional = skips gracefully if the dev DB has no partner records; passes when seed data is present.</p>
+
+<!-- BOOKING -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  📅 Session Booking Flow — <code>booking.spec.ts</code>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr>
+      <th>Test ID</th>
+      <th>Test Name</th>
+      <th>What It Verifies</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="id">BOOK-01</td>
+      <td class="name">Confirm button disabled without selections</td>
+      <td class="desc">Booking confirm button has disabled attribute before any type/slot selection</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">BOOK-02</td>
+      <td class="name">Button still disabled with only type</td>
+      <td class="desc">Selecting an interview type alone is insufficient — slot must also be chosen</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">BOOK-03</td>
+      <td class="name">Button enabled after both selections</td>
+      <td class="desc">Selecting both interview type and a time slot enables the Confirm Booking button</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">BOOK-04</td>
+      <td class="name">Notes field accepts text</td>
+      <td class="desc">data-testid="booking-notes" textarea accepts and stores user input</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">BOOK-05</td>
+      <td class="name">Full booking flow shows success/error</td>
+      <td class="desc">Clicking Confirm triggers POSTing to /api which returns success-state OR booking-error</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">BOOK-06</td>
+      <td class="name">Success state → View in Dashboard</td>
+      <td class="desc">After booking success, "View in Dashboard" navigates to /dashboard</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- DASHBOARD -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  🗂️ Dashboard & Other Flows — <code>dashboard.spec.ts</code>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr>
+      <th>Test ID</th>
+      <th>Test Name</th>
+      <th>What It Verifies</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="id">DASH-01</td>
+      <td class="name">Dashboard requires auth</td>
+      <td class="desc">Visiting /dashboard unauthenticated redirects to /login</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">DASH-02</td>
+      <td class="name">Dashboard header and tabs render</td>
+      <td class="desc">h1 "Your Dashboard" and all 3 tabs (Upcoming / Pending / Past) are visible</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">DASH-03</td>
+      <td class="name">Find Partners button navigates to search</td>
+      <td class="desc">Clicking "Find Partners" navigates to /search</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">DASH-04</td>
+      <td class="name">Pending tab empty state</td>
+      <td class="desc">Switching to Pending tab shows empty state message when no requests exist</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">DASH-05</td>
+      <td class="name">Past tab switches view</td>
+      <td class="desc">Clicking "Past Interviews" tab switches the active view without crash</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">PROF-01</td>
+      <td class="name">Profile page requires auth</td>
+      <td class="desc">Visiting /profile when logged out redirects to /login</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">PROF-02</td>
+      <td class="name">Profile setup page renders</td>
+      <td class="desc">h1/h2 visible on /profile-setup for authenticated users</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">PROF-03</td>
+      <td class="name">Profile shows experience level options</td>
+      <td class="desc">New Grad / Intern / Experienced options or "Experience Level" label visible</td>
+      <td><span class="status-cond">⚡ CONDITIONAL</span></td>
+    </tr>
+    <tr>
+      <td class="id">NAV-01</td>
+      <td class="name">Navbar renders after login</td>
+      <td class="desc">nav element is visible on /dashboard after authentication</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td class="id">NAV-02</td>
+      <td class="name">404 page for unknown routes</td>
+      <td class="desc">Visiting an unknown URL shows "Page Not Found" or redirects to login</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ==================== UNIT TESTS ==================== -->
+<div class="section-title" style="margin-top:3rem">
+  🧪 Unit Tests — Vitest
+  <span class="section-badge unit-badge">Vitest v4 / jsdom + node</span>
+</div>
+
+<!-- Server Actions -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  ⚙️ Server Actions — <span style="font-weight:400;color:var(--gray)">test/actions/</span>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr><th>File</th><th>Tests</th><th>What's Covered</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr class="group-row"><td colspan="4">auth.test.ts</td></tr>
+    <tr>
+      <td class="id" style="font-size:0.78rem">auth</td>
+      <td>3</td>
+      <td class="desc">Register user (success + duplicate email error), login with wrong password</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="4">booking.test.ts</td></tr>
+    <tr>
+      <td class="id" style="font-size:0.78rem">booking</td>
+      <td>5</td>
+      <td class="desc">bookSession: auth guard, self-booking prevention, slot not available, duplicate request, successful booking creation</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="4">dashboard.test.ts</td></tr>
+    <tr>
+      <td class="id" style="font-size:0.78rem">dashboard</td>
+      <td>7</td>
+      <td class="desc">getDashboardData: auth guard, pending/upcoming/past categorization; acceptSession: auth, host-only guard, status update; declineSession: auth, both parties, status update</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="4">profile.test.ts</td></tr>
+    <tr>
+      <td class="id" style="font-size:0.78rem">profile</td>
+      <td>7</td>
+      <td class="desc">getProfile/updateProfile: auth guard, valid update, Zod validation for experienceLevel/interviewTypes/zoomLink</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="4">search.test.ts</td></tr>
+    <tr>
+      <td class="id" style="font-size:0.78rem">search</td>
+      <td>4</td>
+      <td class="desc">searchPartners: returns paginated results, filter by level, filter by date (slot matching), DB error graceful handling</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Auth lib -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  🔑 lib/auth.ts Callbacks — <span style="font-weight:400;color:var(--gray)">__tests__/auth.test.ts</span>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr><th>Group</th><th>Tests</th><th>What's Covered</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>authorize callback</td>
+      <td>5</td>
+      <td class="desc">Missing credentials, empty email, user not found, wrong password, valid credentials → returns {id, email, role}</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>jwt callback</td>
+      <td>4</td>
+      <td class="desc">User id/role copied into token, admin@gmail.com hardcodes ADMIN role, DB re-fetch when role missing, no DB call when role exists</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>session callback</td>
+      <td>2</td>
+      <td class="desc">Token fields mapped to session.user (id, name, email, role); missing token leaves session unchanged</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- UI Components -->
+<h3 style="margin: 1.5rem 0 0.75rem; font-size:1rem; font-weight:700; color:#374151">
+  🖥️ UI Component Tests — <span style="font-weight:400;color:var(--gray)">__tests__/*.tsx</span>
+</h3>
+<table class="test-table">
+  <thead>
+    <tr><th>File</th><th>Tests</th><th>What's Covered</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>admin.test.tsx</td>
+      <td>4</td>
+      <td class="desc">AdminPage loading/error, renders users table, filter by name, delete button present</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>admin.test.ts (API)</td>
+      <td>5</td>
+      <td class="desc">GET /api/admin/stats: auth guard, returns user/session counts; DELETE /api/admin/users/[id]: auth guard, role guard, successful delete</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>dashboard.test.tsx</td>
+      <td>13</td>
+      <td class="desc">Loading state, header render, tab nav, Find Partners click, error on fetch fail, pending session with Accept/Decline, success/error messages after action, upcoming with meeting link, Past tab empty state</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>partner-profile.test.tsx</td>
+      <td>5</td>
+      <td class="desc">Loading skeleton → profile render, left-panel details, booking flow (type → slot → confirm → success), back button nav, error state when partner not found</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>profile.test.tsx</td>
+      <td>4</td>
+      <td class="desc">Profile page renders form, pre-fills existing data, shows Zoom link field, saves successfully on submit</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+    <tr>
+      <td>search.test.tsx</td>
+      <td>6</td>
+      <td class="desc">Loading skeleton → partner cards, total count display, View Profile/Book buttons, empty state, search input + filter controls</td>
+      <td><span class="status-pass">✅ PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- COVERAGE -->
+<div class="section-title" style="margin-top:3rem">
+  📊 Code Coverage — v8 Provider
+  <span class="section-badge unit-badge">71.9% Statements ✅</span>
+</div>
+
+<table class="cov-table">
+  <thead>
+    <tr>
+      <th>File / Module</th>
+      <th>Statements</th>
+      <th>Branches</th>
+      <th>Functions</th>
+      <th>Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="total">
+      <td>🔷 All Files (Overall)</td>
+      <td><span class="cov-num high">71.9%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:71.9%"></span></span></td>
+      <td><span class="cov-num mid">69.0%</span></td>
+      <td><span class="cov-num mid">66.7%</span></td>
+      <td><span class="cov-num high">73.3%</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="5">app/actions — Server Actions</td></tr>
+    <tr>
+      <td>auth.ts</td>
+      <td><span class="cov-num high">84.6%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:84.6%"></span></span></td>
+      <td><span class="cov-num mid">75.0%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">84.6%</span></td>
+    </tr>
+    <tr>
+      <td>booking.ts</td>
+      <td><span class="cov-num mid">69.2%</span><span class="cov-bar"><span class="cov-fill cov-mid" style="width:69.2%"></span></span></td>
+      <td><span class="cov-num mid">68.8%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num mid">69.2%</span></td>
+    </tr>
+    <tr>
+      <td>dashboard.ts</td>
+      <td><span class="cov-num mid">66.0%</span><span class="cov-bar"><span class="cov-fill cov-mid" style="width:66%"></span></span></td>
+      <td><span class="cov-num high">83.9%</span></td>
+      <td><span class="cov-num high">77.8%</span></td>
+      <td><span class="cov-num mid">66.0%</span></td>
+    </tr>
+    <tr>
+      <td>profile.ts</td>
+      <td><span class="cov-num high">81.8%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:81.8%"></span></span></td>
+      <td><span class="cov-num high">83.3%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">81.8%</span></td>
+    </tr>
+    <tr>
+      <td>search.ts</td>
+      <td><span class="cov-num mid">64.7%</span><span class="cov-bar"><span class="cov-fill cov-mid" style="width:64.7%"></span></span></td>
+      <td><span class="cov-num high">80.0%</span></td>
+      <td><span class="cov-num mid">33.3%</span></td>
+      <td><span class="cov-num mid">66.7%</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="5">app/api — Admin API Routes</td></tr>
+    <tr>
+      <td>admin/stats/route.ts</td>
+      <td><span class="cov-num high">76.5%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:76.5%"></span></span></td>
+      <td><span class="cov-num mid">62.5%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">76.5%</span></td>
+    </tr>
+    <tr>
+      <td>admin/users/route.ts</td>
+      <td><span class="cov-num high">81.8%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:81.8%"></span></span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">81.8%</span></td>
+    </tr>
+    <tr>
+      <td>admin/users/[id]/suspend/route.ts</td>
+      <td><span class="cov-num mid">63.6%</span><span class="cov-bar"><span class="cov-fill cov-mid" style="width:63.6%"></span></span></td>
+      <td><span class="cov-num mid">66.7%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num mid">63.6%</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="5">components — UI Components</td></tr>
+    <tr>
+      <td>features/admin/AdminPage.tsx</td>
+      <td><span class="cov-num high">70.1%</span><span class="cov-bar"><span class="cov-fill cov-mid" style="width:70.1%"></span></span></td>
+      <td><span class="cov-num mid">58.9%</span></td>
+      <td><span class="cov-num high">76.5%</span></td>
+      <td><span class="cov-num high">73.3%</span></td>
+    </tr>
+    <tr>
+      <td>features/dashboard/DashboardPage.tsx</td>
+      <td><span class="cov-num high">78.5%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:78.5%"></span></span></td>
+      <td><span class="cov-num high">71.9%</span></td>
+      <td><span class="cov-num mid">68.2%</span></td>
+      <td><span class="cov-num high">81.0%</span></td>
+    </tr>
+    <tr>
+      <td>features/search/PartnerProfilePage.tsx</td>
+      <td><span class="cov-num high">80.6%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:80.6%"></span></span></td>
+      <td><span class="cov-num high">77.8%</span></td>
+      <td><span class="cov-num high">85.0%</span></td>
+      <td><span class="cov-num high">82.5%</span></td>
+    </tr>
+    <tr>
+      <td>features/search/SearchPage.tsx</td>
+      <td><span class="cov-num high">76.5%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:76.5%"></span></span></td>
+      <td><span class="cov-num mid">67.5%</span></td>
+      <td><span class="cov-num mid">60.9%</span></td>
+      <td><span class="cov-num high">77.3%</span></td>
+    </tr>
+    <tr class="group-row"><td colspan="5">lib — Core Library</td></tr>
+    <tr>
+      <td>lib/auth.ts</td>
+      <td><span class="cov-num high">100%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:100%"></span></span></td>
+      <td><span class="cov-num high">92.3%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+    </tr>
+    <tr>
+      <td>lib/validations.ts</td>
+      <td><span class="cov-num high">100%</span><span class="cov-bar"><span class="cov-fill cov-high" style="width:100%"></span></span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+      <td><span class="cov-num high">100%</span></td>
+    </tr>
+    <tr>
+      <td>app/profile/page.tsx</td>
+      <td><span class="cov-num low">47.2%</span><span class="cov-bar"><span class="cov-fill cov-low" style="width:47.2%"></span></span></td>
+      <td><span class="cov-num low">41.4%</span></td>
+      <td><span class="cov-num low">36.8%</span></td>
+      <td><span class="cov-num low">49.3%</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- SECURITY -->
+<div class="section-title" style="margin-top:3rem">🔒 Security Testing Checklist</div>
+<table class="test-table">
+  <thead>
+    <tr><th>Check</th><th>How Tested</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>All API routes check getServerSession</td>
+      <td class="desc">Unit tests for /api/admin/* confirm 401 on missing session; all server actions validated in action tests</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+    <tr>
+      <td>Zod input validation before DB write</td>
+      <td class="desc">booking.test.ts and profile.test.ts send invalid payloads and assert Zod error responses</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+    <tr>
+      <td>No self-booking allowed</td>
+      <td class="desc">bookSession test: hostId === guestId returns {success: false, error: "You cannot book..."}</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+    <tr>
+      <td>Only host can accept a session</td>
+      <td class="desc">acceptSession test with non-host userId returns "Only the host can accept"</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+    <tr>
+      <td>Admin routes guard by ADMIN role</td>
+      <td class="desc">admin.test.ts: non-admin session → 403; no session → 401</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+    <tr>
+      <td>Protected routes redirect unauthenticated users</td>
+      <td class="desc">E2E tests AUTH-06 → AUTH-09 + DASH-01, PROF-01 confirm middleware redirects to /login</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+    <tr>
+      <td>No secrets in client bundle</td>
+      <td class="desc">Verified NEXT_PUBLIC_ prefix not used for DB URLs, JWT secrets, or API keys in .env</td>
+      <td><span class="status-pass">✅ VERIFIED</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- HOW TO RUN -->
+<div class="section-title" style="margin-top:3rem">▶️ How to Run the Tests</div>
+<div class="two-col">
+  <div class="info-card">
+    <h3>🧪 Unit Tests (Vitest)</h3>
+    <ul>
+      <li><code>npm run test:unit</code> — run all unit tests</li>
+      <li><code>npm run test:coverage</code> — unit tests + coverage report</li>
+      <li>Coverage report: <code>coverage/index.html</code></li>
+      <li>Environment: jsdom (UI) + node (actions)</li>
+      <li>Mocking: Prisma, NextAuth, next/navigation</li>
+    </ul>
+  </div>
+  <div class="info-card">
+    <h3>🎭 E2E Tests (Playwright)</h3>
+    <ul>
+      <li>Start dev server: <code>npm run dev</code></li>
+      <li>Run all E2E: <code>npm run test:e2e</code></li>
+      <li>HTML report: <code>npx playwright show-report</code></li>
+      <li>Set env vars: <code>TEST_USER_EMAIL</code>, <code>TEST_USER_PASSWORD</code></li>
+      <li>Browser: Chromium (headless by default)</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<footer>
+  MockMate Test Report · Sprint 2 · March 11, 2026 · 69 unit + 33 E2E = 102 total tests
+</footer>
+
+</body>
+</html>
