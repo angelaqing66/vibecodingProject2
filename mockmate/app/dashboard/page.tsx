@@ -13,6 +13,7 @@ export default function DashboardPage() {
     type SessionWithUsers = import('@prisma/client').MockSession & {
         host: Pick<import('@prisma/client').User, 'id' | 'name' | 'experienceLevel' | 'interviewTypes' | 'zoomLink'> | null;
         guest: Pick<import('@prisma/client').User, 'id' | 'name' | 'experienceLevel' | 'interviewTypes' | 'zoomLink'> | null;
+        message?: string | null;
     };
 
     const [dashboardData, setDashboardData] = useState<{
@@ -229,7 +230,12 @@ export default function DashboardPage() {
                                                         <div>
                                                             <p className="text-[#8A2BE2] font-semibold text-sm mb-1">{formatDateTime(session.scheduledTime)}</p>
                                                             <p className="text-gray-900 font-bold text-lg">{session.guest?.name}</p>
-                                                            <p className="text-gray-500 text-sm">{session.guest?.experienceLevel} • {session.guest?.interviewTypes?.join(', ')}</p>
+                                                            <p className="text-gray-500 text-sm mb-3">{session.guest?.experienceLevel} • {session.guest?.interviewTypes?.join(', ')}</p>
+                                                            {session.message && (
+                                                                <div className="bg-purple-50 p-3 rounded-lg border border-purple-100 mt-2 max-w-lg">
+                                                                    <p className="text-sm text-purple-900 italic">&quot;{session.message}&quot;</p>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         <div className="flex items-center gap-3">
                                                             <button
@@ -261,7 +267,12 @@ export default function DashboardPage() {
                                                         <div>
                                                             <p className="text-yellow-600 font-semibold text-sm mb-1">Awaiting confirmation for {formatDateTime(session.scheduledTime)}</p>
                                                             <p className="text-gray-900 font-bold text-lg">{session.host?.name}</p>
-                                                            <p className="text-gray-500 text-sm">{session.host?.experienceLevel} • {session.host?.interviewTypes?.join(', ')}</p>
+                                                            <p className="text-gray-500 text-sm mb-3">{session.host?.experienceLevel} • {session.host?.interviewTypes?.join(', ')}</p>
+                                                            {session.message && (
+                                                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mt-2 max-w-lg">
+                                                                    <p className="text-sm text-gray-700 italic">&quot;{session.message}&quot;</p>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         <div className="flex items-center">
                                                             <button

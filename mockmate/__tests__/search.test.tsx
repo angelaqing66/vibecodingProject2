@@ -21,9 +21,9 @@ import SearchPage from '@/components/features/search/SearchPage';
 
 const mockResult = {
   users: [
-    { id: '1', name: 'Alex Chen', image: null, experienceLevel: 'New Grad', interviewTypes: ['Coding', 'System Design'] },
-    { id: '2', name: 'Priya Sharma', image: null, experienceLevel: 'Intern', interviewTypes: ['Behavioral', 'Coding'] },
-    { id: '3', name: 'James Park', image: null, experienceLevel: 'Experienced', interviewTypes: ['System Design'] },
+    { id: '1', name: 'Alex Chen', image: null, experienceLevel: 'New Grad', interviewTypes: ['Coding', 'System Design'], availability: [] },
+    { id: '2', name: 'Priya Sharma', image: null, experienceLevel: 'Intern', interviewTypes: ['Behavioral', 'Coding'], availability: [] },
+    { id: '3', name: 'James Park', image: null, experienceLevel: 'Experienced', interviewTypes: ['System Design'], availability: [] },
   ],
   totalCount: 3,
   totalPages: 1,
@@ -71,10 +71,10 @@ describe('SearchPage (backend-integrated)', () => {
     });
   });
 
-  it('renders View Profile buttons for each partner', async () => {
+  it('renders View Profile & Book buttons for each partner', async () => {
     render(<SearchPage />);
     await waitFor(() => {
-      const viewButtons = screen.getAllByText('View Profile');
+      const viewButtons = screen.getAllByText('View Profile & Book');
       expect(viewButtons).toHaveLength(3);
     });
   });

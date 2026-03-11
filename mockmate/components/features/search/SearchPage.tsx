@@ -257,7 +257,7 @@ export default function SearchPage() {
                       router.push(`/search/${partner.id}`);
                     }}
                   >
-                    View Profile
+                    View Profile & Book
                   </button>
                 </div>
               ))}

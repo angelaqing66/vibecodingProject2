@@ -38,8 +38,6 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
     try {
       const [usersRes, sessionsRes, statsRes] = await Promise.all([
         fetch('/api/admin/users'),
@@ -68,6 +66,7 @@ export default function AdminPage() {
   }, [router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 

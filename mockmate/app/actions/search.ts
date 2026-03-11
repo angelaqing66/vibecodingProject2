@@ -11,6 +11,7 @@ export type UserSearchResponse = {
   image: string | null;
   experienceLevel: string | null;
   interviewTypes: string[];
+  availability: string[];
 };
 
 export type SearchResult = {
@@ -83,11 +84,12 @@ export async function searchPartners({
           image: true,
           experienceLevel: true,
           interviewTypes: true,
+          availability: true,
         },
         skip,
         take: limit,
         orderBy: {
-          name: 'asc', // Or order by last active, etc.
+          id: 'asc', // deterministic sort, could be dynamic later
         },
       }),
       prisma.user.count({

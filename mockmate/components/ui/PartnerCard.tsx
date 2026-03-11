@@ -1,13 +1,17 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { UserSearchResponse } from '@/app/actions/search';
+import { BookingModal } from '@/components/booking-modal';
 
 interface PartnerCardProps {
   user: UserSearchResponse;
 }
 
 export function PartnerCard({ user }: PartnerCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row gap-6 items-start md:items-center hover:shadow-md transition-shadow duration-200">
       {/* Avatar */}
@@ -51,17 +55,25 @@ export function PartnerCard({ user }: PartnerCardProps) {
       {/* Action Area */}
       <div className="w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
         <button
-          onClick={() => {
-            // In Sprint 2, this will open the booking modal
-            alert(
-              `Booking flow for ${user.name} will be implemented in Sprint 2!`
-            );
-          }}
+          onClick={() => setIsModalOpen(true)}
           className="w-full md:w-auto px-6 py-3 bg-[#8A2BE2] hover:bg-[#7924c7] text-white font-medium rounded-xl shadow-sm transition-colors duration-200 flex justify-center items-center gap-2"
         >
           <span className="text-lg">📅</span> Book Session
         </button>
       </div>
+
+      {isModalOpen && (
+        <BookingModal
+          partner={{
+            id: user.id,
+            name: user.name,
+            experienceLevel: user.experienceLevel,
+            interviewTypes: user.interviewTypes || [],
+            availability: user.availability || [],
+          }}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

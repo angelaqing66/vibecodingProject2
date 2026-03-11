@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getPartnerById, type PartnerProfile } from '@/app/actions/search';
+import { bookSession } from '@/app/actions/booking';
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const FULL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 
 export default function PartnerProfilePage({ partnerId }: { partnerId: string }) {
     const router = useRouter();
@@ -66,36 +66,26 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
         setBookingError(null);
 
         try {
-            const res = await fetch('/api/sessions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    hostId: partner.id,
-                    scheduledTime: selectedSlot,
-                    notes: notes.trim() || undefined,
-                }),
+            const result = await bookSession({
+                hostId: partner.id,
+                scheduledTime: selectedSlot,
+                message: notes.trim() || undefined,
             });
 
-            const data = await res.json() as {
-                success: boolean;
-                error?: string;
-                data?: { meetingLink?: string | null };
-            };
-
-            if (!data.success) {
-                setBookingError(data.error || 'Failed to book session. Please try again.');
+            if (!result.success) {
+                setBookingError(result.error || 'Failed to book session. Please try again.');
                 setIsBooking(false);
                 return;
             }
 
-            // Success — store meeting link from API and remove booked slot from availability
-            setConfirmedMeetingLink(data.data?.meetingLink ?? partner.zoomLink ?? null);
+            // Success — show success message and meeting link
+            setConfirmedMeetingLink(partner.zoomLink ?? null);
             setPartner((prev) =>
                 prev ? { ...prev, availability: prev.availability.filter((a) => a !== selectedSlot) } : prev
             );
             setIsBooked(true);
         } catch {
-            setBookingError('Network error. Please check your connection and try again.');
+            setBookingError('Network error. Please try again.');
         } finally {
             setIsBooking(false);
         }
@@ -321,8 +311,8 @@ export default function PartnerProfilePage({ partnerId }: { partnerId: string })
                                         disabled={!selectedType || !selectedSlot || isBooking}
                                         data-testid="confirm-booking"
                                         className={`w-full px-6 py-3.5 rounded-xl font-bold text-white transition-all duration-200 flex items-center justify-center gap-2 ${!selectedType || !selectedSlot || isBooking
-                                                ? 'bg-gray-300 cursor-not-allowed'
-                                                : 'bg-[#7C3AED] hover:bg-[#6D28D9] shadow-md hover:shadow-lg'
+                                            ? 'bg-gray-300 cursor-not-allowed'
+                                            : 'bg-[#7C3AED] hover:bg-[#6D28D9] shadow-md hover:shadow-lg'
                                             }`}
                                     >
                                         {isBooking ? (

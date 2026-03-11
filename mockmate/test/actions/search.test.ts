@@ -79,10 +79,11 @@ describe('searchPartners', () => {
         image: true,
         experienceLevel: true,
         interviewTypes: true,
+        availability: true,
       },
       skip: 0,
       take: 10,
-      orderBy: { name: 'asc' },
+      orderBy: { id: 'asc' },
     });
 
     expect(prisma.user.count).toHaveBeenCalledWith({
