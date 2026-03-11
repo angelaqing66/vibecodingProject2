@@ -8,10 +8,14 @@ import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-// Mock the backend action
+// Mock the backend actions
 vi.mock('@/app/actions/search', () => ({
   searchPartners: vi.fn(),
   getPartnerById: vi.fn(),
+}));
+
+vi.mock('@/app/actions/booking', () => ({
+  bookSession: vi.fn(),
 }));
 
 // Mock useRouter
@@ -21,6 +25,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import { getPartnerById } from '@/app/actions/search';
+import { bookSession } from '@/app/actions/booking';
 import PartnerProfilePage from '@/components/features/search/PartnerProfilePage';
 
 const mockPartner = {
@@ -39,14 +44,9 @@ const mockPartner = {
 describe('PartnerProfilePage and Booking UI', () => {
   beforeEach(() => {
     vi.mocked(getPartnerById).mockResolvedValue({ success: true, partner: mockPartner });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(bookSession).mockResolvedValue({ success: true, session: {} as any });
     mockPush.mockClear();
-    // Default: sessions POST succeeds
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({
-        success: true,
-        data: { meetingLink: 'https://zoom.us/j/111', id: 'sess1', scheduledTime: new Date().toISOString(), status: 'PENDING' },
-      }),
-    });
   });
 
   afterEach(() => {
