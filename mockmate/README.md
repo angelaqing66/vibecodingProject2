@@ -115,6 +115,3 @@ We follow an agile Scrum methodology aligned with GitHub Issues.
   - CI must pass (Linting, Formatting, Unit Tests).
   - Test coverage must remain above the required threshold.
 
-## Team
-- **Vartika** (Frontend, UI/UX, Admin API)
-- **Angela** (Backend, Auth, Database, Real-time)
