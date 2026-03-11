@@ -32,6 +32,7 @@ export async function signUpUser(data: SignupInput) {
         name,
         email,
         password: hashedPassword,
+        ...(email === 'admin@gmail.com' ? { role: 'ADMIN' } : {}),
       },
     });
 
