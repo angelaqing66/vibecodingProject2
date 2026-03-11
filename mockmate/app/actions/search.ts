@@ -116,10 +116,32 @@ export async function searchPartners({
       }),
     ]);
 
+    // Gather all PENDING or SCHEDULED sessions covering fetched users
+    const bookedSessions = await prisma.mockSession.findMany({
+      where: {
+        hostId: { in: users.map(u => u.id) },
+        status: { in: ['PENDING', 'SCHEDULED'] },
+        scheduledTime: { gt: new Date() }
+      },
+      select: { hostId: true, scheduledTime: true }
+    });
+
+    // Strip booked slots dynamically
+    const filteredUsers = users.map(u => {
+      const userBookings = bookedSessions
+        .filter(s => s.hostId === u.id)
+        .map(s => s.scheduledTime.toISOString());
+
+      return {
+        ...u,
+        availability: u.availability.filter(slot => !userBookings.includes(slot))
+      }
+    });
+
     const totalPages = Math.ceil(totalCount / limit);
 
     return {
-      users,
+      users: filteredUsers,
       totalCount,
       totalPages,
       currentPage: page,
@@ -173,6 +195,19 @@ export async function getPartnerById(partnerId: string): Promise<{
     if (!partner) {
       return { success: false, error: 'Partner not found' };
     }
+
+    // Filter out actively booked slots
+    const bookedSessions = await prisma.mockSession.findMany({
+      where: {
+        hostId: partnerId,
+        status: { in: ['PENDING', 'SCHEDULED'] },
+        scheduledTime: { gt: new Date() }
+      },
+      select: { scheduledTime: true }
+    });
+
+    const bookedSlots = bookedSessions.map(s => s.scheduledTime.toISOString());
+    partner.availability = partner.availability.filter(slot => !bookedSlots.includes(slot));
 
     return { success: true, partner };
   } catch (error) {

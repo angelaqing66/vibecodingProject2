@@ -9,6 +9,9 @@ vi.mock('../../lib/db', () => ({
       findMany: vi.fn(),
       count: vi.fn(),
     },
+    mockSession: {
+      findMany: vi.fn(),
+    }
   },
 }));
 
@@ -44,6 +47,7 @@ describe('searchPartners', () => {
         image: null,
         experienceLevel: 'Intern',
         interviewTypes: ['Coding'],
+        availability: [],
       },
     ];
 
@@ -51,6 +55,7 @@ describe('searchPartners', () => {
       mockUsers as unknown as import('@prisma/client').User[]
     );
     vi.mocked(prisma.user.count).mockResolvedValueOnce(1);
+    vi.mocked(prisma.mockSession.findMany).mockResolvedValueOnce([]);
 
     const result = await searchPartners({
       page: 1,
@@ -104,6 +109,7 @@ describe('searchPartners', () => {
 
     vi.mocked(prisma.user.findMany).mockResolvedValueOnce([]);
     vi.mocked(prisma.user.count).mockResolvedValueOnce(0);
+    vi.mocked(prisma.mockSession.findMany).mockResolvedValueOnce([]);
 
     const result = await searchPartners({
       page: 1, limit: 10, date: '2024-05-12'
