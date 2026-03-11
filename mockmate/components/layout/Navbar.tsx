@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import NavDropdown from "./NavDropdown";
+import { signOut } from "next-auth/react";
 import NotificationBell from "./NotificationBell";
 
 interface NavbarProps {
@@ -15,14 +15,7 @@ export default function Navbar({ userName, role }: NavbarProps) {
     const pathname = usePathname();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const getInitials = (name: string) => {
-        return name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .substring(0, 2);
-    };
+
 
     const navLinks = [
         { name: "Search", href: "/search" },
@@ -58,8 +51,8 @@ export default function Navbar({ userName, role }: NavbarProps) {
                             href={link.href}
                             data-testid={`nav-link-${link.name.toLowerCase()}`}
                             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive(link.href)
-                                    ? "bg-[#EDE9FE] text-[#7C3AED]"
-                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                ? "bg-[#EDE9FE] text-[#7C3AED]"
+                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                                 }`}
                         >
                             {link.name}
@@ -74,7 +67,12 @@ export default function Navbar({ userName, role }: NavbarProps) {
                     </div>
 
                     <div className="hidden md:block">
-                        <NavDropdown initials={getInitials(userName || "User")} />
+                        <button
+                            onClick={() => signOut({ callbackUrl: "/login" })}
+                            className="text-gray-600 hover:text-red-600 font-semibold text-sm transition-colors py-2 px-3 rounded-lg hover:bg-red-50"
+                        >
+                            Sign Out
+                        </button>
                     </div>
 
                     {/* Mobile menu button */}
@@ -102,8 +100,8 @@ export default function Navbar({ userName, role }: NavbarProps) {
                                 href={link.href}
                                 onClick={() => setMobileMenuOpen(false)}
                                 className={`block px-3 py-2 rounded-md justify-between items-center text-base font-medium ${isActive(link.href)
-                                        ? "bg-[#EDE9FE] text-[#7C3AED]"
-                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    ? "bg-[#EDE9FE] text-[#7C3AED]"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                                     }`}
                             >
                                 {link.name}
@@ -111,13 +109,18 @@ export default function Navbar({ userName, role }: NavbarProps) {
                         ))}
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-100">
-                        <div className="flex items-center px-5 gap-3">
-                            <NavDropdown initials={getInitials(userName || "User")} />
-                            <div className="ml-3">
+                        <div className="flex items-center px-5 gap-3 justify-between">
+                            <div className="flex items-center gap-3">
                                 <div className="text-base font-medium leading-none text-gray-800">{userName}</div>
                             </div>
-                            <div className="ml-auto">
+                            <div className="flex items-center gap-4">
                                 <NotificationBell />
+                                <button
+                                    onClick={() => signOut({ callbackUrl: "/login" })}
+                                    className="text-sm font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                    Sign Out
+                                </button>
                             </div>
                         </div>
                     </div>

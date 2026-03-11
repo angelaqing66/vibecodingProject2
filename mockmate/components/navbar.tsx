@@ -84,10 +84,10 @@ export function Navbar() {
                         </button>
                         <button
                             onClick={() => signOut({ callbackUrl: '/login' })}
-                            className="w-9 h-9 rounded-full bg-[#8A2BE2] flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity"
+                            className="bg-red-50 text-red-600 hover:bg-red-100 font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
                             title="Sign out"
                         >
-                            {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
+                            Sign Out
                         </button>
                     </div>
                 </div>
