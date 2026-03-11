@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getDashboardData, acceptSession, declineSession, cancelSession } from '@/app/actions/dashboard';
-import { useRouter } from 'next/navigation';
 
-export default function DashboardPage() {
+function DashboardContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // Read the tab from URL query params, default to 'upcoming'
+    const initialTab = searchParams.get('tab') as 'upcoming' | 'pending' | 'past' || 'upcoming';
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -28,7 +33,15 @@ export default function DashboardPage() {
         past: []
     });
 
-    const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>(initialTab);
+
+    // If query param changes, update the active tab
+    useEffect(() => {
+        const tab = searchParams.get('tab') as 'upcoming' | 'pending' | 'past';
+        if (tab && ['upcoming', 'pending', 'past'].includes(tab)) {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
 
     const fetchDashboard = async (showLoadingObj = false) => {
         if (showLoadingObj) setIsLoading(true);
@@ -66,6 +79,7 @@ export default function DashboardPage() {
         if (res.success) {
             showMessage('Session accepted successfully');
             fetchDashboard();
+            window.dispatchEvent(new Event('mockmate-session-updated'));
         } else {
             setError(res.error || 'Failed to accept session');
         }
@@ -76,6 +90,7 @@ export default function DashboardPage() {
         if (res.success) {
             showMessage('Session declined');
             fetchDashboard();
+            window.dispatchEvent(new Event('mockmate-session-updated'));
         } else {
             setError(res.error || 'Failed to decline session');
         }
@@ -86,6 +101,7 @@ export default function DashboardPage() {
         if (res.success) {
             showMessage('Session cancelled');
             fetchDashboard();
+            window.dispatchEvent(new Event('mockmate-session-updated'));
         } else {
             setError(res.error || 'Failed to cancel session');
         }
@@ -319,5 +335,17 @@ export default function DashboardPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F3F4FE] flex flex-col items-center justify-center">
+                <p className="text-xl font-medium text-gray-500">Loading Dashboard...</p>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     );
 }

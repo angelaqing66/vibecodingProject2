@@ -76,6 +76,31 @@ export async function getDashboardData() {
     }
 }
 
+export async function getPendingRequestCount() {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return { success: false, count: 0 };
+    }
+
+    try {
+        const count = await prisma.mockSession.count({
+            where: {
+                hostId: session.user.id,
+                status: 'PENDING',
+                scheduledTime: {
+                    gt: new Date()
+                }
+            }
+        });
+
+        return { success: true, count };
+    } catch (error) {
+        console.error('getPendingRequestCount error:', error);
+        return { success: false, count: 0 };
+    }
+}
+
 export async function acceptSession(sessionId: string) {
     const session = await getServerSession(authOptions);
 

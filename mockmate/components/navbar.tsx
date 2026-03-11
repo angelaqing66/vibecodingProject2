@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Search, Calendar, User, Bell, ShieldAlert } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
+import NotificationBell from './layout/NotificationBell';
 
 export function Navbar() {
     const pathname = usePathname();
@@ -78,10 +79,7 @@ export function Navbar() {
 
                     {/* Right side - User stuff */}
                     <div className="flex items-center gap-4">
-                        <button className="p-2 text-gray-400 hover:text-gray-500 relative">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-                        </button>
+                        <NotificationBell />
                         <button
                             onClick={() => signOut({ callbackUrl: '/login' })}
                             className="bg-red-50 text-red-600 hover:bg-red-100 font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
