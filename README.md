@@ -73,6 +73,27 @@ npm run test:coverage
 npm run test:e2e
 ```
 
+### 📊 Test Coverage — Latest Results
+
+> 📄 **[View the full interactive Test Report →](test-report.html)**
+
+| File / Module | Statements | Branches | Functions | Lines |
+|---|---|---|---|---|
+| **All Files (Overall)** | **94.2%** | **93.5%** | **90.3%** | **94.4%** |
+| `app/actions/auth.ts` | 84.6% | 75.0% | 100% | 84.6% |
+| `app/actions/booking.ts` | 92.3% | 93.8% | 100% | 92.3% |
+| `app/actions/dashboard.ts` | 100% | 100% | 100% | 100% |
+| `app/actions/profile.ts` | 81.8% | 83.3% | 100% | 81.8% |
+| `app/actions/search.ts` | 94.1% | 100% | 66.7% | 93.8% |
+| `app/api/admin/stats/route.ts` | 100% | 100% | 100% | 100% |
+| `app/api/admin/users/route.ts` | 100% | 100% | 100% | 100% |
+| `app/api/sessions/route.ts` | 97.6% | 95.5% | 100% | 100% |
+| `lib/auth.ts` | 100% | 92.3% | 100% | 100% |
+| `lib/validations.ts` | 100% | 100% | 100% | 100% |
+
+**Unit test suite:** 78 tests passing across 14 test files · **E2E suite:** 33 Playwright tests
+
+
 ## Project Structure
 ```text
 MockMate/

@@ -134,5 +134,54 @@ describe('Booking Actions', () => {
                 }
             }));
         });
+
+        it('returns error when host does not exist in DB (null from findUnique)', async () => {
+            vi.mocked(getServerSession).mockResolvedValueOnce({
+                user: { id: 'guest123' },
+            } as unknown as import('next-auth').Session);
+
+            // findUnique returns null — host not found
+            vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
+
+            const result = await bookSession({
+                hostId: 'host-nonexistent',
+                scheduledTime: validISO,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Host not found');
+        });
+
+        it('returns ZodError message when scheduledTime is not a valid datetime', async () => {
+            vi.mocked(getServerSession).mockResolvedValueOnce({
+                user: { id: 'guest123' },
+            } as unknown as import('next-auth').Session);
+
+            const result = await bookSession({
+                hostId: 'host123',
+                scheduledTime: 'not-a-valid-datetime',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toBeTruthy();
+        });
+
+        it('returns server error when DB throws unexpectedly', async () => {
+            vi.mocked(getServerSession).mockResolvedValueOnce({
+                user: { id: 'guest123' },
+            } as unknown as import('next-auth').Session);
+
+            vi.mocked(prisma.user.findUnique).mockRejectedValueOnce(
+                new Error('Unexpected DB failure'),
+            );
+
+            const result = await bookSession({
+                hostId: 'host123',
+                scheduledTime: validISO,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('Unexpected DB failure');
+        });
     });
 });

@@ -7,5 +7,14 @@ export default defineConfig({
   test: {
     environment: 'node', // server actions run in node
     exclude: ['playwright-tests/**', 'node_modules/**'],
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        statements: 80,
+        functions: 80,
+        branches: 80,
+        lines: 80,
+      },
+    },
   },
 });

@@ -110,5 +110,62 @@ describe('Admin API Routes', () => {
       // 5 completed out of 20 total = 25% show up rate
       expect(data.data.showUpRate).toBe(25);
     });
+
+    it('Returns 401 for unauthenticated request to stats', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce(null);
+      const res = await getStats();
+      expect(res.status).toBe(401);
+      const data = await res.json();
+      expect(data.success).toBe(false);
+    });
+
+    it('Returns 403 for non-admin request to stats', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce({
+        user: { id: 'user-1', role: 'USER' },
+      } as any);
+      const res = await getStats();
+      expect(res.status).toBe(403);
+    });
+
+    it('Returns 500 when DB throws on stats', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce({
+        user: { id: 'admin-1', role: 'ADMIN' },
+      } as any);
+      vi.mocked(prisma.user.count).mockRejectedValueOnce(new Error('DB error'));
+
+      const res = await getStats();
+      expect(res.status).toBe(500);
+      const data = await res.json();
+      expect(data.success).toBe(false);
+    });
+
+    it('Returns 0 showUpRate when totalSessions is 0', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce({
+        user: { id: 'admin-1', role: 'ADMIN' },
+      } as any);
+      vi.mocked(prisma.user.count).mockResolvedValueOnce(5);
+      vi.mocked(prisma.mockSession.count).mockResolvedValueOnce(0);
+      vi.mocked(prisma.mockSession.count).mockResolvedValueOnce(0);
+      vi.mocked(prisma.mockSession.count).mockResolvedValueOnce(0);
+
+      const res = await getStats();
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.data.showUpRate).toBe(0);
+    });
+  });
+
+  describe('Users API — error paths', () => {
+    it('Returns 500 when DB throws on user list', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce({
+        user: { id: 'admin-1', role: 'ADMIN' },
+      } as any);
+      vi.mocked(prisma.user.findMany).mockRejectedValueOnce(new Error('DB crash'));
+
+      const res = await getUsers();
+      expect(res.status).toBe(500);
+      const data = await res.json();
+      expect(data.success).toBe(false);
+    });
   });
 });
