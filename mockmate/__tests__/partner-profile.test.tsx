@@ -9,6 +9,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
+import type { MockSession } from '@prisma/client';
 
 // Mock global fetch (used by handleBooking -> POST /api/sessions)
 const mockFetch = vi.fn();
@@ -53,10 +54,9 @@ describe('PartnerProfilePage and Booking UI', () => {
       success: true,
       partner: mockPartner,
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(bookSession).mockResolvedValue({
       success: true,
-      session: {} as any,
+      session: {} as MockSession,
     });
     mockPush.mockClear();
   });
