@@ -16,7 +16,5 @@ export default async function PartnerProfileRoute({
 
   const { id } = await params;
 
-  return (
-    <PartnerProfilePage partnerId={id} />
-  );
+  return <PartnerProfilePage partnerId={id} />;
 }

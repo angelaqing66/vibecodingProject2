@@ -23,7 +23,8 @@ vi.mock('@/app/actions/profile', () => ({
 
 // Mock react-hook-form with zodResolver since profile/page.tsx uses it
 vi.mock('react-hook-form', async () => {
-  const actual = await vi.importActual<typeof import('react-hook-form')>('react-hook-form');
+  const actual =
+    await vi.importActual<typeof import('react-hook-form')>('react-hook-form');
   return {
     ...actual,
     useForm: () => ({
@@ -99,6 +100,8 @@ describe('ProfilePage (backend-integrated)', () => {
     await waitFor(() => {
       expect(screen.getByText('My Profile')).toBeInTheDocument();
     });
-    expect(screen.getByRole('button', { name: /save profile/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /save profile/i })
+    ).toBeInTheDocument();
   });
 });

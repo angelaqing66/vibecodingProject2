@@ -1,8 +1,15 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
+import type { MockSession } from '@prisma/client';
 
 // Mock global fetch (used by handleBooking -> POST /api/sessions)
 const mockFetch = vi.fn();
@@ -43,9 +50,14 @@ const mockPartner = {
 
 describe('PartnerProfilePage and Booking UI', () => {
   beforeEach(() => {
-    vi.mocked(getPartnerById).mockResolvedValue({ success: true, partner: mockPartner });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(bookSession).mockResolvedValue({ success: true, session: {} as any });
+    vi.mocked(getPartnerById).mockResolvedValue({
+      success: true,
+      partner: mockPartner,
+    });
+    vi.mocked(bookSession).mockResolvedValue({
+      success: true,
+      session: {} as MockSession,
+    });
     mockPush.mockClear();
   });
 
@@ -76,7 +88,9 @@ describe('PartnerProfilePage and Booking UI', () => {
     expect(screen.getByText('New Grad')).toBeInTheDocument();
     // Both 'Coding' and 'System Design' appear in the profile AND booking widget — use getAllByText
     expect(screen.getAllByText('Coding').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('System Design').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('System Design').length).toBeGreaterThanOrEqual(
+      1
+    );
   });
 
   it('handles the booking flow accurately', async () => {
@@ -125,13 +139,18 @@ describe('PartnerProfilePage and Booking UI', () => {
   });
 
   it('shows error state when partner is not found', async () => {
-    vi.mocked(getPartnerById).mockResolvedValue({ success: false, error: 'Partner not found' });
+    vi.mocked(getPartnerById).mockResolvedValue({
+      success: false,
+      error: 'Partner not found',
+    });
 
     render(<PartnerProfilePage partnerId="nonexistent" />);
 
     // Use getAllByText since the text appears in both the heading and the detail
     await waitFor(() => {
-      expect(screen.getAllByText(/Partner not found/i).length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText(/Partner not found/i).length
+      ).toBeGreaterThanOrEqual(1);
     });
   });
 });

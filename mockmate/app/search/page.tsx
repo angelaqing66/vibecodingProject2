@@ -15,7 +15,5 @@ export default async function SearchRoute() {
     redirect('/login');
   }
 
-  return (
-    <SearchPage />
-  );
+  return <SearchPage />;
 }

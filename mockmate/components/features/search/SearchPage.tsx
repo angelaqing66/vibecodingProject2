@@ -30,28 +30,31 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPartners = useCallback(async (page = 1) => {
-    setIsLoading(true);
-    setError(null);
-    const result = await searchPartners({
-      page,
-      limit: 12,
-      name: searchQuery,
-      experienceLevel: selectedLevel,
-      interviewType: selectedType,
-      date: selectedDate,
-    });
+  const fetchPartners = useCallback(
+    async (page = 1) => {
+      setIsLoading(true);
+      setError(null);
+      const result = await searchPartners({
+        page,
+        limit: 12,
+        name: searchQuery,
+        experienceLevel: selectedLevel,
+        interviewType: selectedType,
+        date: selectedDate,
+      });
 
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setPartners(result.users);
-      setTotalCount(result.totalCount);
-      setTotalPages(result.totalPages);
-      setCurrentPage(result.currentPage);
-    }
-    setIsLoading(false);
-  }, [searchQuery, selectedLevel, selectedType, selectedDate]);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setPartners(result.users);
+        setTotalCount(result.totalCount);
+        setTotalPages(result.totalPages);
+        setCurrentPage(result.currentPage);
+      }
+      setIsLoading(false);
+    },
+    [searchQuery, selectedLevel, selectedType, selectedDate]
+  );
 
   useEffect(() => {
     // Debounce search query changes
@@ -69,7 +72,8 @@ export default function SearchPage() {
     setSelectedDate('');
   };
 
-  const hasFilters = searchQuery || selectedType || selectedLevel || selectedDate;
+  const hasFilters =
+    searchQuery || selectedType || selectedLevel || selectedDate;
 
   const getInitials = (name: string | null) => {
     if (!name) return '?';
@@ -96,7 +100,6 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
-
       {/* Sidebar Filters */}
       <aside className="w-full md:w-64 shrink-0">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sticky top-8 space-y-6">
@@ -114,7 +117,9 @@ export default function SearchPage() {
 
           {/* Name Search */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Search by name</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Search by name
+            </label>
             <input
               type="text"
               placeholder="Type a name..."
@@ -127,7 +132,9 @@ export default function SearchPage() {
 
           {/* Date Filter */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Availability Date</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Availability Date
+            </label>
             <input
               type="date"
               value={selectedDate}
@@ -141,16 +148,23 @@ export default function SearchPage() {
 
           {/* Experience Level */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Experience Level</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Experience Level
+            </label>
             <div className="space-y-2">
               {EXPERIENCE_LEVELS.map((level) => (
-                <label key={level} className="flex items-center gap-2 cursor-pointer">
+                <label
+                  key={level}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <input
                     type="radio"
                     name="experienceLevel"
                     value={level}
                     checked={selectedLevel === level}
-                    onChange={() => setSelectedLevel(selectedLevel === level ? '' : level)}
+                    onChange={() =>
+                      setSelectedLevel(selectedLevel === level ? '' : level)
+                    }
                     className="accent-purple-600"
                     data-testid={`level-filter-${level.replace(' ', '-')}`}
                   />
@@ -162,16 +176,23 @@ export default function SearchPage() {
 
           {/* Interview Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Interview Type</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Interview Type
+            </label>
             <div className="space-y-2">
               {INTERVIEW_TYPES.map((type) => (
-                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                <label
+                  key={type}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <input
                     type="radio"
                     name="interviewType"
                     value={type}
                     checked={selectedType === type}
-                    onChange={() => setSelectedType(selectedType === type ? '' : type)}
+                    onChange={() =>
+                      setSelectedType(selectedType === type ? '' : type)
+                    }
                     className="accent-purple-600"
                     data-testid={`type-filter-${type.replace(' ', '-')}`}
                   />
@@ -187,7 +208,9 @@ export default function SearchPage() {
       <main className="flex-1">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-extrabold text-gray-900">Find Partners</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900">
+            Find Partners
+          </h1>
           <p className="text-gray-500 mt-1">
             {isLoading
               ? 'Searching...'
@@ -204,7 +227,10 @@ export default function SearchPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 p-6 animate-pulse">
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-gray-100 p-6 animate-pulse"
+              >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-gray-200 rounded-full" />
                   <div className="flex-1 space-y-2">
@@ -222,7 +248,9 @@ export default function SearchPage() {
         ) : partners.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 p-16 text-center">
             <p className="text-2xl mb-2">🔍</p>
-            <p className="text-gray-700 font-semibold text-lg">No partners found</p>
+            <p className="text-gray-700 font-semibold text-lg">
+              No partners found
+            </p>
             <p className="text-gray-500 mt-1 text-sm">
               Try adjusting your filters or search query.
             </p>
@@ -251,9 +279,13 @@ export default function SearchPage() {
                       {getInitials(partner.name)}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate">{partner.name || 'Anonymous'}</p>
+                      <p className="font-bold text-gray-900 truncate">
+                        {partner.name || 'Anonymous'}
+                      </p>
                       {partner.experienceLevel && (
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getLevelColor(partner.experienceLevel)}`}>
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getLevelColor(partner.experienceLevel)}`}
+                        >
                           {partner.experienceLevel}
                         </span>
                       )}
@@ -261,18 +293,19 @@ export default function SearchPage() {
                   </div>
 
                   {/* Interview Types */}
-                  {partner.interviewTypes && partner.interviewTypes.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {partner.interviewTypes.map((type) => (
-                        <span
-                          key={type}
-                          className="text-xs bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-full font-medium"
-                        >
-                          {type}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {partner.interviewTypes &&
+                    partner.interviewTypes.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {partner.interviewTypes.map((type) => (
+                          <span
+                            key={type}
+                            className="text-xs bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-full font-medium"
+                          >
+                            {type}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                   {/* CTA */}
                   <button

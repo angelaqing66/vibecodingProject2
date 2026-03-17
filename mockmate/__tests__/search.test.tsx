@@ -21,9 +21,30 @@ import SearchPage from '@/components/features/search/SearchPage';
 
 const mockResult = {
   users: [
-    { id: '1', name: 'Alex Chen', image: null, experienceLevel: 'New Grad', interviewTypes: ['Coding', 'System Design'], availability: [] },
-    { id: '2', name: 'Priya Sharma', image: null, experienceLevel: 'Intern', interviewTypes: ['Behavioral', 'Coding'], availability: [] },
-    { id: '3', name: 'James Park', image: null, experienceLevel: 'Experienced', interviewTypes: ['System Design'], availability: [] },
+    {
+      id: '1',
+      name: 'Alex Chen',
+      image: null,
+      experienceLevel: 'New Grad',
+      interviewTypes: ['Coding', 'System Design'],
+      availability: [],
+    },
+    {
+      id: '2',
+      name: 'Priya Sharma',
+      image: null,
+      experienceLevel: 'Intern',
+      interviewTypes: ['Behavioral', 'Coding'],
+      availability: [],
+    },
+    {
+      id: '3',
+      name: 'James Park',
+      image: null,
+      experienceLevel: 'Experienced',
+      interviewTypes: ['System Design'],
+      availability: [],
+    },
   ],
   totalCount: 3,
   totalPages: 1,

@@ -11,7 +11,7 @@ vi.mock('../../lib/db', () => ({
     },
     mockSession: {
       findMany: vi.fn(),
-    }
+    },
   },
 }));
 
@@ -114,7 +114,9 @@ describe('searchPartners', () => {
     vi.mocked(prisma.mockSession.findMany).mockResolvedValueOnce([]);
 
     await searchPartners({
-      page: 1, limit: 10, date: '2024-05-12'
+      page: 1,
+      limit: 10,
+      date: '2024-05-12',
     });
 
     const expectedTimeSlots = Array.from({ length: 48 }, (_, i) => {
@@ -123,11 +125,13 @@ describe('searchPartners', () => {
       return slotDate.toISOString();
     });
 
-    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
-        availability: { hasSome: expectedTimeSlots }
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          availability: { hasSome: expectedTimeSlots },
+        }),
       })
-    }));
+    );
   });
 
   it('returns empty list gracefully on db errors', async () => {
