@@ -79,7 +79,9 @@ export async function searchPartners({
     if (date) {
       // Generate 48 half-hour ISO strings (in UTC) for the given YYYY-MM-DD
       const [year, month, day] = date.split('-');
-      const targetDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+      const targetDate = new Date(
+        Date.UTC(Number(year), Number(month) - 1, Number(day))
+      );
 
       const timeSlots: string[] = [];
       for (let i = 0; i < 48; i++) {
@@ -89,7 +91,7 @@ export async function searchPartners({
       }
 
       whereClause.availability = {
-        hasSome: timeSlots
+        hasSome: timeSlots,
       };
     }
 
@@ -120,23 +122,25 @@ export async function searchPartners({
     // Gather all PENDING or SCHEDULED sessions covering fetched users
     const bookedSessions = await prisma.mockSession.findMany({
       where: {
-        hostId: { in: users.map(u => u.id) },
+        hostId: { in: users.map((u) => u.id) },
         status: { in: ['PENDING', 'SCHEDULED'] },
-        scheduledTime: { gt: new Date() }
+        scheduledTime: { gt: new Date() },
       },
-      select: { hostId: true, scheduledTime: true }
+      select: { hostId: true, scheduledTime: true },
     });
 
     // Strip booked slots dynamically
-    const filteredUsers = users.map(u => {
+    const filteredUsers = users.map((u) => {
       const userBookings = bookedSessions
-        .filter(s => s.hostId === u.id)
-        .map(s => s.scheduledTime.toISOString());
+        .filter((s) => s.hostId === u.id)
+        .map((s) => s.scheduledTime.toISOString());
 
       return {
         ...u,
-        availability: u.availability.filter(slot => !userBookings.includes(slot))
-      }
+        availability: u.availability.filter(
+          (slot) => !userBookings.includes(slot)
+        ),
+      };
     });
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -183,7 +187,7 @@ export async function getPartnerById(partnerId: string): Promise<{
     const partner = await prisma.user.findFirst({
       where: {
         id: partnerId,
-        role: { not: 'ADMIN' }
+        role: { not: 'ADMIN' },
       },
       select: {
         id: true,
@@ -205,13 +209,17 @@ export async function getPartnerById(partnerId: string): Promise<{
       where: {
         hostId: partnerId,
         status: { in: ['PENDING', 'SCHEDULED'] },
-        scheduledTime: { gt: new Date() }
+        scheduledTime: { gt: new Date() },
       },
-      select: { scheduledTime: true }
+      select: { scheduledTime: true },
     });
 
-    const bookedSlots = bookedSessions.map(s => s.scheduledTime.toISOString());
-    partner.availability = partner.availability.filter(slot => !bookedSlots.includes(slot));
+    const bookedSlots = bookedSessions.map((s) =>
+      s.scheduledTime.toISOString()
+    );
+    partner.availability = partner.availability.filter(
+      (slot) => !bookedSlots.includes(slot)
+    );
 
     return { success: true, partner };
   } catch (error) {

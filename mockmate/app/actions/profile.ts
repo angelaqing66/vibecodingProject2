@@ -51,7 +51,8 @@ export async function updateProfile(data: ProfileInput) {
       };
     }
 
-    const { experienceLevel, interviewTypes, availability, zoomLink } = validatedData.data;
+    const { experienceLevel, interviewTypes, availability, zoomLink } =
+      validatedData.data;
 
     const user = await prisma.user.update({
       where: { email: session.user.email },

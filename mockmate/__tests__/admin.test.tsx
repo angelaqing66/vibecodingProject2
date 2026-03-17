@@ -1,7 +1,13 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 
 // Mock next/navigation (AdminPage uses useRouter)
@@ -18,8 +24,18 @@ import AdminPage from '@/components/features/admin/AdminPage';
 const mockUsersData = {
   success: true,
   data: [
-    { id: '1', name: 'Alex Chen', email: 'alex@mit.edu', experienceLevel: 'New Grad' },
-    { id: '2', name: 'Sofia Martinez', email: 'sofia@ucla.edu', experienceLevel: 'Intern' },
+    {
+      id: '1',
+      name: 'Alex Chen',
+      email: 'alex@mit.edu',
+      experienceLevel: 'New Grad',
+    },
+    {
+      id: '2',
+      name: 'Sofia Martinez',
+      email: 'sofia@ucla.edu',
+      experienceLevel: 'Intern',
+    },
   ],
 };
 const mockSessionsData = {
@@ -41,15 +57,33 @@ const mockSessionsData = {
     },
   ],
 };
-const mockStatsData = { success: true, data: { totalUsers: 248, totalSessions: 42, weekSessions: 10 } };
+const mockStatsData = {
+  success: true,
+  data: { totalUsers: 248, totalSessions: 42, weekSessions: 10 },
+};
 
 describe('AdminPage', () => {
   beforeEach(() => {
     mockFetch.mockImplementation((url: string) => {
-      if (url.includes('/api/admin/users')) return Promise.resolve({ status: 200, json: () => Promise.resolve(mockUsersData) });
-      if (url.includes('/api/admin/sessions')) return Promise.resolve({ status: 200, json: () => Promise.resolve(mockSessionsData) });
-      if (url.includes('/api/admin/stats')) return Promise.resolve({ status: 200, json: () => Promise.resolve(mockStatsData) });
-      return Promise.resolve({ status: 200, json: () => Promise.resolve({ success: true }) });
+      if (url.includes('/api/admin/users'))
+        return Promise.resolve({
+          status: 200,
+          json: () => Promise.resolve(mockUsersData),
+        });
+      if (url.includes('/api/admin/sessions'))
+        return Promise.resolve({
+          status: 200,
+          json: () => Promise.resolve(mockSessionsData),
+        });
+      if (url.includes('/api/admin/stats'))
+        return Promise.resolve({
+          status: 200,
+          json: () => Promise.resolve(mockStatsData),
+        });
+      return Promise.resolve({
+        status: 200,
+        json: () => Promise.resolve({ success: true }),
+      });
     });
   });
 
@@ -66,9 +100,9 @@ describe('AdminPage', () => {
     });
 
     expect(screen.getByTestId('admin-badge')).toHaveTextContent('Admin');
-    expect(screen.getByText('248')).toBeInTheDocument();  // totalUsers
-    expect(screen.getByText('42')).toBeInTheDocument();   // totalSessions
-    expect(screen.getByText('10')).toBeInTheDocument();   // weekSessions
+    expect(screen.getByText('248')).toBeInTheDocument(); // totalUsers
+    expect(screen.getByText('42')).toBeInTheDocument(); // totalSessions
+    expect(screen.getByText('10')).toBeInTheDocument(); // weekSessions
   });
 
   it('toggles tabs and renders Users and Sessions', async () => {
@@ -109,7 +143,9 @@ describe('AdminPage', () => {
       expect(screen.getByText('Alex Chen')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByTestId('user-search'), { target: { value: 'Sofia' } });
+    fireEvent.change(screen.getByTestId('user-search'), {
+      target: { value: 'Sofia' },
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Sofia Martinez')).toBeInTheDocument();
@@ -120,8 +156,15 @@ describe('AdminPage', () => {
   it('calls DELETE endpoint when delete button is clicked', async () => {
     window.confirm = vi.fn(() => true);
     mockFetch.mockImplementationOnce((url: string) => {
-      if (url.includes('/api/admin/users')) return Promise.resolve({ status: 200, json: () => Promise.resolve(mockUsersData) });
-      return Promise.resolve({ status: 200, json: () => Promise.resolve({ success: true }) });
+      if (url.includes('/api/admin/users'))
+        return Promise.resolve({
+          status: 200,
+          json: () => Promise.resolve(mockUsersData),
+        });
+      return Promise.resolve({
+        status: 200,
+        json: () => Promise.resolve({ success: true }),
+      });
     });
 
     render(<AdminPage />);

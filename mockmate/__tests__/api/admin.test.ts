@@ -160,7 +160,9 @@ describe('Admin API Routes', () => {
       vi.mocked(getServerSession).mockResolvedValueOnce({
         user: { id: 'admin-1', role: 'ADMIN' },
       } as any);
-      vi.mocked(prisma.user.findMany).mockRejectedValueOnce(new Error('DB crash'));
+      vi.mocked(prisma.user.findMany).mockRejectedValueOnce(
+        new Error('DB crash')
+      );
 
       const res = await getUsers();
       expect(res.status).toBe(500);
